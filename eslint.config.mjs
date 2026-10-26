@@ -15,6 +15,7 @@ const eslintConfig = defineConfig([
     // Template mẫu là một dự án riêng, có cấu hình lint của nó.
     "templates/**",
     "public/templates/**",
+    "public/runtime/**",
   ]),
 ]);
 

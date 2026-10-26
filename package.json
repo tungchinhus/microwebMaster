@@ -4,17 +4,19 @@
   "private": true,
   "scripts": {
     "pack-template": "node scripts/pack-template.mjs",
-    "predev": "npm run pack-template",
-    "prebuild": "npm run pack-template",
+    "predev": "npm run pack-template && npm run build-runtime",
+    "prebuild": "npm run pack-template && npm run build-runtime",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "next typegen && tsc --noEmit"
+    "typecheck": "next typegen && tsc --noEmit",
+    "build-runtime": "node scripts/build-runtime.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.31.0",
     "@stackblitz/sdk": "^1.11.1",
+    "esbuild-wasm": "^0.28.2",
     "jszip": "^3.10.2",
     "lucide-react": "^1.61.0",
     "next": "16.4.3",
@@ -28,8 +30,11 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "esbuild": "^0.28.2",
     "eslint": "^9",
     "eslint-config-next": "16.4.3",
+    "firebase": "^13.1.0",
+    "react-router-dom": "^7.18.4",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

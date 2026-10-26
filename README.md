@@ -33,6 +33,25 @@ Web Master chạy hoàn toàn trên trình duyệt (Gemini được gọi trực
 - **Vercel:** [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/tungchinhus/microwebMaster) (không cần biến môi trường).
 - **Hosting tĩnh khác (Firebase Hosting, Netlify...):** `STATIC_EXPORT=1 npm run build`, rồi đưa thư mục `out/` lên. Nếu chạy trong thư mục con, đặt thêm `NEXT_PUBLIC_BASE_PATH=/ten-thu-muc`.
 
+## Deploy thẳng lên Firebase của người dùng
+
+Ở màn hình kết quả (chế độ AI), khung **Deploy lên Firebase của bạn** làm trọn vòng: người dùng chỉ cần tạo một project trên [Firebase Console](https://console.firebase.google.com/), rồi Web Master tự:
+
+1. Lấy (hoặc tạo) Web App của project và điền `.env`, bật đăng nhập Email/Password.
+2. Build website **ngay trong trình duyệt** bằng esbuild-wasm và Tailwind. React, React Router, Firebase SDK và lucide-react được dựng sẵn ở `public/runtime/` (script `npm run build-runtime`, tự chạy trước `dev`/`build`). Nếu file do AI viết bị lỗi build, Gemini được nhờ sửa tự động (tối đa 2 vòng).
+3. Tạo Cloud Firestore (nếu chưa có) và các index cần thiết.
+4. Đưa Security Rules của Firestore và Storage lên.
+5. Tải website lên Firebase Hosting (có SPA rewrite) và trả về link `https://<project>.web.app`.
+
+Sau đó có ô **Cấp quyền admin** theo email để mở trang /admin.
+
+**Đăng nhập Google:** Web Master cần một access token có quyền quản lý Firebase của chính người dùng.
+
+- Cách tiện nhất: tạo *OAuth client ID* loại *Web application* trên [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials), thêm tên miền của Web Master (ví dụ `https://tungchinhus.github.io`, `http://localhost:3000`) vào *Authorized JavaScript origins*, rồi đặt `NEXT_PUBLIC_GOOGLE_CLIENT_ID` (file `.env.local` khi chạy local; biến repo `GOOGLE_CLIENT_ID` khi build bằng GitHub Pages). Nút "Đăng nhập Google" sẽ xuất hiện. Khi màn hình đồng ý của OAuth còn ở chế độ *Testing*, thêm email người dùng vào *Test users*.
+- Không có client ID: dán token từ `gcloud auth print-access-token` (token hết hạn sau khoảng 1 giờ).
+
+Token chỉ nằm trong bộ nhớ của tab, không lưu xuống trình duyệt. Project trên gói Spark (miễn phí) dùng được Hosting và Firestore; Storage cho project mới cần gói Blaze, nếu chưa có thì bước Storage rules được bỏ qua kèm ghi chú.
+
 ## Chạy thử website vừa tạo ngay trên trình duyệt
 
 Ở màn hình kết quả, bấm **Chạy thử online**: mã nguồn được mở trên StackBlitz, nơi `npm install` và `npm run dev` chạy ngay trong trình duyệt (WebContainers), không cần cài Node trên máy. Đăng nhập Google của Firebase chỉ chạy khi bạn thêm tên miền StackBlitz vào *Authentication → Settings → Authorized domains*.

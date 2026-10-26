@@ -42,3 +42,4 @@ next-env.d.ts
 
 # template được đóng gói khi build
 /public/templates/
+/public/runtime/

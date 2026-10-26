@@ -31,7 +31,30 @@ export const DEFAULT_CONFIG: BuilderConfig = {
   ai: { geminiApiKey: "", model: "gemini-2.5-flash", rememberKey: false, baseUrl: "" },
 };
 
+export interface DeploySettings {
+  projectId: string;
+  firestoreLocation: string;
+  setupFirestore: boolean;
+  deployRules: boolean;
+  autoFixRounds: number;
+  /** Thay https://*.googleapis.com bằng proxy (để trống khi dùng bình thường). */
+  apiBase: string;
+  lastUrl: string;
+}
+
+export const DEFAULT_DEPLOY: DeploySettings = {
+  projectId: "",
+  firestoreLocation: "asia-southeast1",
+  setupFirestore: true,
+  deployRules: true,
+  autoFixRounds: 2,
+  apiBase: "",
+  lastUrl: "",
+};
+
 interface BuilderState {
+  deploy: DeploySettings;
+  updateDeploy: (patch: Partial<DeploySettings>) => void;
   config: BuilderConfig;
   result: GenerationResult | null;
   progress: GenerationProgress | null;
@@ -52,6 +75,8 @@ export const useBuilderStore = create<BuilderState>()(
   persist(
     (set) => ({
       config: DEFAULT_CONFIG,
+      deploy: DEFAULT_DEPLOY,
+      updateDeploy: (patch) => set((s) => ({ deploy: { ...s.deploy, ...patch } })),
       result: null,
       progress: null,
       generating: false,
@@ -97,6 +122,7 @@ export const useBuilderStore = create<BuilderState>()(
       partialize: (s) => ({
         config: { ...s.config, ai: { ...s.config.ai, geminiApiKey: s.config.ai.rememberKey ? s.config.ai.geminiApiKey : "" } },
         result: s.result,
+        deploy: s.deploy,
       }),
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<BuilderState>;
@@ -104,6 +130,7 @@ export const useBuilderStore = create<BuilderState>()(
         return {
           ...current,
           result: p.result ?? null,
+          deploy: { ...DEFAULT_DEPLOY, ...p.deploy },
           config: {
             ...DEFAULT_CONFIG,
             ...c,

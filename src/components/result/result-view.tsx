@@ -10,6 +10,7 @@ import { openInStackBlitz } from "@/lib/stackblitz";
 import { downloadText, downloadZip } from "@/lib/zip";
 import { useBuilderStore } from "@/store/builder-store";
 import { CodeViewer } from "./code-viewer";
+import { DeployPanel } from "./deploy-panel";
 import { FileTree } from "./file-tree";
 
 const SOURCE_LABEL = { ai: "AI viết", static: "Khung dự án", template: "Template" } as const;
@@ -209,6 +210,8 @@ export function ResultView() {
           )}
         </Card>
       </div>
+
+      <DeployPanel />
 
       <DeployGuide steps={result.setupSteps} />
     </div>

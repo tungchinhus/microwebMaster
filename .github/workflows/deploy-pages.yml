@@ -30,6 +30,8 @@ jobs:
         env:
           STATIC_EXPORT: "1"
           NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
+          # Tùy chọn: OAuth client ID để có nút "Đăng nhập Google" ở bước deploy (Settings → Variables).
+          NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
       - run: touch out/.nojekyll
       - uses: actions/upload-pages-artifact@v3
         with:

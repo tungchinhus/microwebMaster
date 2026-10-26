@@ -1,0 +1,64 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function validProduct(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() <= 200
+        && data.slug is string
+        && data.description is string
+        && data.price is number && data.price >= 0
+        && (data.salePrice == null || (data.salePrice is number && data.salePrice >= 0))
+        && data.images is list && data.images.size() <= 10
+        && data.categoryId is string
+        && data.stock is int && data.stock >= 0
+        && data.featured is bool
+        && data.active is bool;
+    }
+
+    // Hồ sơ người dùng: khách tự tạo với role "customer", không tự nâng quyền được.
+    match /users/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.role == 'customer'
+        && request.resource.data.keys().hasOnly(['email', 'displayName', 'phone', 'role', 'createdAt']);
+      allow update: if isAdmin()
+        || (signedIn() && request.auth.uid == uid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'phone']));
+      allow delete: if isAdmin();
+    }
+
+    match /categories/{id} {
+      allow read: if true;
+      allow write: if isAdmin()
+        && (request.method == 'delete' || (request.resource.data.name is string && request.resource.data.name.size() > 0));
+    }
+
+    // Khách chỉ xem được sản phẩm đang bán; admin xem và sửa tất cả.
+    match /products/{id} {
+      allow read: if resource.data.active == true || isAdmin();
+      allow create, update: if isAdmin() && validProduct(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    // Đơn hàng chỉ được tạo từ server (Admin SDK) để giá và tồn kho không bị giả mạo.
+    match /orders/{id} {
+      allow read: if signedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if false;
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
+        && request.resource.data.status in ['pending', 'confirmed', 'shipping', 'completed', 'cancelled'];
+      allow delete: if false;
+    }
+  }
+}

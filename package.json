@@ -1,0 +1,38 @@
+{
+  "name": "techzone",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "typecheck": "next typegen && tsc --noEmit",
+    "emulators": "firebase emulators:start --project demo-techzone --import=./emulator-data --export-on-exit",
+    "seed": "node scripts/seed.mjs",
+    "set-admin": "node scripts/set-admin.mjs",
+    "deploy:rules": "firebase deploy --only firestore:rules,firestore:indexes,storage",
+    "test:rules": "firebase emulators:exec --project demo-techzone --only firestore,storage \"node --test tests/rules.test.mjs\""
+  },
+  "dependencies": {
+    "firebase": "^13.1.0",
+    "firebase-admin": "^14.5.0",
+    "lucide-react": "^1.61.0",
+    "next": "16.4.3",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "server-only": "^0.0.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/turbopack": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.3",
+    "firebase-tools": "^15.34.1",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

@@ -1,11 +1,12 @@
 "use client";
 
-import { AlertTriangle, Check, Copy, Download, FileDown, Loader2, Rocket, Sparkles, Terminal, Wand2 } from "lucide-react";
+import { AlertTriangle, Check, Copy, Download, FileDown, Loader2, Play, Rocket, Sparkles, Terminal, Wand2 } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { useHydrated } from "@/components/store-hydrator";
 import { Button, ButtonLink, Card, Input } from "@/components/ui";
 import { regenerateFile } from "@/lib/generator";
 import { findSpec } from "@/lib/generator/blueprint";
+import { openInStackBlitz } from "@/lib/stackblitz";
 import { downloadText, downloadZip } from "@/lib/zip";
 import { useBuilderStore } from "@/store/builder-store";
 import { CodeViewer } from "./code-viewer";
@@ -16,6 +17,11 @@ const SOURCE_LABEL = { ai: "AI viết", static: "Khung dự án", template: "Tem
 function DeployGuide({ steps }: { steps: string[] }) {
   return (
     <Card className="p-5">
+      <p className="mb-4 rounded-lg bg-primary/5 p-3 text-sm">
+        <span className="font-medium">Không muốn cài gì?</span> Bấm <span className="font-medium">Chạy thử online</span> ở trên: StackBlitz
+        tự chạy npm install và npm run dev ngay trong trình duyệt (lần đầu mất khoảng 1 phút). Đăng nhập Google chỉ hoạt động khi bạn
+        thêm tên miền webcontainer của StackBlitz vào Authorized domains.
+      </p>
       <h2 className="mb-3 flex items-center gap-2 font-semibold">
         <Rocket className="size-4 text-primary" /> Hướng dẫn chạy nhanh
       </h2>
@@ -119,6 +125,9 @@ export function ResultView() {
         </div>
         <div className="flex flex-wrap gap-2">
           <ButtonLink href="/" variant="outline">Chỉnh cấu hình</ButtonLink>
+          <Button variant="outline" onClick={() => openInStackBlitz(result)} title="Mở trên StackBlitz, tự cài đặt và chạy ngay trong trình duyệt">
+            <Play className="size-4" /> Chạy thử online
+          </Button>
           <Button
             loading={zipping}
             onClick={async () => {

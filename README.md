@@ -9,7 +9,7 @@ Web Master là bảng điều khiển cho phép chọn loại website, theme, nh
   - **AI viết toàn bộ (Gemini):** Gemini viết 30 file giao diện và logic theo một bản thiết kế cố định; Web Master tự tạo phần khung (package.json, Vite, Tailwind theme, Firebase rules, README) để dự án luôn cài đặt và build được.
   - **Template đã kiểm thử:** xuất ngay bản TechZone (Next.js 16 + Firebase) trong `templates/techzone`, đã chạy thử đầy đủ, chỉ thay thông tin cửa hàng và Firebase. Không cần API Key.
 - **Bộ máy sinh code:** chia 30 file thành 12 lượt gọi (tối đa 3 file mỗi lượt, 2 lượt song song), ép Gemini trả JSON theo schema, tự thử lại khi lỗi 429/5xx, tự yêu cầu viết bổ sung file bị thiếu, thanh tiến độ và nhật ký từng bước, nút Hủy.
-- **Màn hình kết quả:** cây thư mục, code viewer có số dòng và highlight, Copy Code, tải từng file, **Download Code (.zip)**, **Viết lại bằng AI** từng file theo yêu cầu (ví dụ "thêm bộ lọc theo khoảng giá"), hướng dẫn chạy nhanh.
+- **Màn hình kết quả:** nút **Chạy thử online** (StackBlitz), cây thư mục, code viewer có số dòng và highlight, Copy Code, tải từng file, **Download Code (.zip)**, **Viết lại bằng AI** từng file theo yêu cầu (ví dụ "thêm bộ lọc theo khoảng giá"), hướng dẫn chạy nhanh.
 - **Bảo mật API Key:** trình duyệt gọi thẳng Gemini API bằng `@google/genai`, key không đi qua máy chủ Web Master. Key chỉ được lưu vào localStorage khi bạn tick "Nhớ key".
 
 ## Chạy Web Master ở máy local
@@ -23,7 +23,19 @@ npm run dev          # mở http://localhost:3000
 
 Lấy Gemini API Key miễn phí tại https://aistudio.google.com/apikey, dán vào bước 4 rồi bấm **Tự động tạo Website bằng AI**. Một lượt tạo thường mất 2 đến 5 phút với `gemini-2.5-flash`.
 
-Build production: `npm run build && npm start`. Có thể deploy lên Vercel như mọi dự án Next.js (không cần biến môi trường).
+Build production: `npm run build && npm start`.
+
+## Đưa Web Master lên mạng
+
+Web Master chạy hoàn toàn trên trình duyệt (Gemini được gọi trực tiếp từ trình duyệt), nên host như một trang tĩnh là đủ.
+
+- **GitHub Pages (tự động):** repo đã có workflow `.github/workflows/deploy-pages.yml`. Vào *Settings → Pages → Source: GitHub Actions* một lần; từ đó mỗi lần push lên `main`, trang được build lại tại `https://<tài-khoản>.github.io/<tên-repo>/`.
+- **Vercel:** [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/tungchinhus/microwebMaster) (không cần biến môi trường).
+- **Hosting tĩnh khác (Firebase Hosting, Netlify...):** `STATIC_EXPORT=1 npm run build`, rồi đưa thư mục `out/` lên. Nếu chạy trong thư mục con, đặt thêm `NEXT_PUBLIC_BASE_PATH=/ten-thu-muc`.
+
+## Chạy thử website vừa tạo ngay trên trình duyệt
+
+Ở màn hình kết quả, bấm **Chạy thử online**: mã nguồn được mở trên StackBlitz, nơi `npm install` và `npm run dev` chạy ngay trong trình duyệt (WebContainers), không cần cài Node trên máy. Đăng nhập Google của Firebase chỉ chạy khi bạn thêm tên miền StackBlitz vào *Authentication → Settings → Authorized domains*.
 
 ## Website được tạo ra (chế độ AI)
 

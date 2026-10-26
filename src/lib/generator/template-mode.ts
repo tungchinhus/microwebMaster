@@ -70,7 +70,7 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 
 /** Xuất template TechZone (Next.js) đã kiểm thử, thay thông tin shop và Firebase của người dùng. */
 export async function buildFromTemplate(config: BuilderConfig, signal?: AbortSignal): Promise<GenerationResult> {
-  const res = await fetch("/templates/techzone.json", { signal });
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/templates/techzone.json`, { signal });
   if (!res.ok) throw new Error("Không tải được template. Hãy chạy lại npm run build.");
   const packed = (await res.json()) as PackedTemplate;
 

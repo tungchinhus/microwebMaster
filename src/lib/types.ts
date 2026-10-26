@@ -1,87 +1,70 @@
-export type UserRole = "customer" | "admin";
+export type SiteTypeId = "ecommerce";
+export type ThemeId = "modern-minimalist" | "tech-dark" | "elegant" | "vibrant" | "organic";
+export type GenerationMode = "ai" | "template";
 
-export interface UserProfile {
-  uid: string;
-  email: string;
-  displayName: string;
-  phone?: string;
-  role: UserRole;
-  createdAt: number | null;
+export interface FirebaseWebConfig {
+  apiKey: string;
+  authDomain: string;
+  projectId: string;
+  storageBucket: string;
+  messagingSenderId: string;
+  appId: string;
 }
 
-export interface Category {
-  id: string;
+export interface StoreInfo {
   name: string;
-  slug: string;
-  description?: string;
-  sortOrder: number;
-  createdAt: number | null;
-}
-
-export interface Product {
-  id: string;
-  name: string;
-  slug: string;
+  slogan: string;
   description: string;
-  price: number;
-  /** Giá khuyến mãi, bỏ trống nếu không giảm giá. */
-  salePrice?: number | null;
-  images: string[];
-  categoryId: string;
-  stock: number;
-  sku?: string;
-  featured: boolean;
-  active: boolean;
-  createdAt: number | null;
-  updatedAt: number | null;
-}
-
-export type ProductInput = Omit<Product, "id" | "createdAt" | "updatedAt">;
-
-export const ORDER_STATUSES = [
-  "pending",
-  "confirmed",
-  "shipping",
-  "completed",
-  "cancelled",
-] as const;
-export type OrderStatus = (typeof ORDER_STATUSES)[number];
-
-export interface OrderItem {
-  productId: string;
-  name: string;
-  image: string | null;
-  price: number;
-  quantity: number;
-}
-
-export interface ShippingInfo {
-  fullName: string;
+  primaryColor: string;
   phone: string;
+  email: string;
   address: string;
-  note?: string;
+  /** Yêu cầu thêm của người dùng gửi kèm cho AI (không bắt buộc). */
+  extraRequirements: string;
 }
 
-export interface Order {
+export interface AiSettings {
+  geminiApiKey: string;
+  model: string;
+  rememberKey: boolean;
+  /** Để trống để dùng endpoint mặc định của Google. */
+  baseUrl: string;
+}
+
+export interface BuilderConfig {
+  siteType: SiteTypeId;
+  theme: ThemeId;
+  mode: GenerationMode;
+  store: StoreInfo;
+  firebase: FirebaseWebConfig;
+  ai: AiSettings;
+}
+
+export interface GeneratedFile {
+  path: string;
+  /** Nội dung văn bản; với file nhị phân là chuỗi base64 (xem `encoding`). */
+  content: string;
+  encoding?: "base64";
+  /** "ai": do Gemini viết; "static": khung dự án do Web Master tạo sẵn; "template": từ template đã kiểm thử. */
+  source: "ai" | "static" | "template";
+}
+
+export interface GenerationResult {
   id: string;
-  userId: string;
-  userEmail: string;
-  items: OrderItem[];
-  subtotal: number;
-  shippingFee: number;
-  total: number;
-  status: OrderStatus;
-  paymentMethod: "cod";
-  shipping: ShippingInfo;
-  createdAt: number | null;
-  updatedAt: number | null;
+  createdAt: number;
+  mode: GenerationMode;
+  model: string | null;
+  storeName: string;
+  files: GeneratedFile[];
+  /** File AI không trả về hoặc bị lỗi sau khi đã thử lại. */
+  missing: string[];
+  setupSteps: string[];
 }
 
-export interface CartItem {
-  productId: string;
-  name: string;
-  image: string | null;
-  price: number;
-  quantity: number;
-  stock: number;
+export interface GenerationProgress {
+  phase: "preparing" | "generating" | "finalizing" | "done" | "error";
+  completedBatches: number;
+  totalBatches: number;
+  currentLabel: string;
+  log: string[];
 }

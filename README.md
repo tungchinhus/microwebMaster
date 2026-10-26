@@ -1,118 +1,77 @@
-# TechZone: Web bán hàng + Trang quản trị
+# Web Master: tạo website bán hàng bằng Gemini
 
-Ứng dụng bán hàng online kèm trang quản trị, xây bằng **Next.js 16 (App Router)**, **React 19**, **Tailwind CSS 4** và **Firebase** (Authentication, Firestore, Storage).
+Web Master là bảng điều khiển cho phép chọn loại website, theme, nhập thông tin cửa hàng, **Gemini API Key** và cấu hình Firebase, rồi tự động tạo **toàn bộ mã nguồn** một website bán hàng (trang cửa hàng + trang quản trị) dùng React, Tailwind CSS và Firebase. Kết quả hiển thị dạng cây thư mục, xem code có tô màu cú pháp, copy từng file, tải về file `.zip`.
 
 ## Tính năng
 
-**Cửa hàng**
-- Trang chủ: banner, danh mục, sản phẩm nổi bật, hàng mới về
-- Danh sách sản phẩm: lọc theo danh mục, tìm kiếm không dấu, sắp xếp giá/tên, lọc còn hàng, "Xem thêm"
-- Chi tiết sản phẩm: nhiều ảnh, giá khuyến mãi, tồn kho, chọn số lượng, Mua ngay
-- Giỏ hàng lưu trên trình duyệt, đồng bộ giữa các tab, miễn phí vận chuyển theo ngưỡng
-- Thanh toán COD, kiểm tra thông tin giao hàng
-- Đăng ký / đăng nhập (email + Google), hồ sơ tài khoản, lịch sử đơn hàng
-- Giao diện Sáng/Tối (nhớ lựa chọn, không bị nháy), responsive cho điện thoại
+- **Builder 4 bước:** loại website (giai đoạn 1: Web Bán hàng & Quản lý Sản phẩm), 5 theme có hình minh họa (Modern Minimalist, Tech Dark, Elegant, Vibrant Pop, Organic Nature), thông tin shop và màu chủ đạo, Gemini API Key (ẩn/hiện, tùy chọn ghi nhớ), cấu hình Firebase (nhập từng ô hoặc dán nguyên đoạn `const firebaseConfig = {...}` để tự điền).
+- **Hai cách tạo mã nguồn:**
+  - **AI viết toàn bộ (Gemini):** Gemini viết 30 file giao diện và logic theo một bản thiết kế cố định; Web Master tự tạo phần khung (package.json, Vite, Tailwind theme, Firebase rules, README) để dự án luôn cài đặt và build được.
+  - **Template đã kiểm thử:** xuất ngay bản TechZone (Next.js 16 + Firebase) trong `templates/techzone`, đã chạy thử đầy đủ, chỉ thay thông tin cửa hàng và Firebase. Không cần API Key.
+- **Bộ máy sinh code:** chia 30 file thành 12 lượt gọi (tối đa 3 file mỗi lượt, 2 lượt song song), ép Gemini trả JSON theo schema, tự thử lại khi lỗi 429/5xx, tự yêu cầu viết bổ sung file bị thiếu, thanh tiến độ và nhật ký từng bước, nút Hủy.
+- **Màn hình kết quả:** cây thư mục, code viewer có số dòng và highlight, Copy Code, tải từng file, **Download Code (.zip)**, **Viết lại bằng AI** từng file theo yêu cầu (ví dụ "thêm bộ lọc theo khoảng giá"), hướng dẫn chạy nhanh.
+- **Bảo mật API Key:** trình duyệt gọi thẳng Gemini API bằng `@google/genai`, key không đi qua máy chủ Web Master. Key chỉ được lưu vào localStorage khi bạn tick "Nhớ key".
 
-**Trang quản trị (`/admin`)**
-- Tổng quan: doanh thu, số đơn, biểu đồ doanh thu 7 ngày, cảnh báo sắp hết hàng, đơn mới
-- Sản phẩm: thêm/sửa/xóa, upload nhiều ảnh lên Firebase Storage, bật/tắt bán nhanh
-- Danh mục: thêm/sửa/xóa, sắp thứ tự
-- Đơn hàng: lọc theo trạng thái, tìm kiếm, chuyển trạng thái (Chờ xác nhận → Đã xác nhận → Đang giao → Hoàn thành), hủy đơn tự hoàn kho
-- Khách hàng: danh sách, số đơn, tổng chi tiêu
+## Chạy Web Master ở máy local
 
-**Bảo mật**
-- Đơn hàng chỉ được tạo qua API server (`/api/orders`): server tự tính giá từ Firestore, kiểm tra và trừ tồn kho trong một transaction, nên khách không thể sửa giá
-- Firestore & Storage Security Rules: khách không tự nâng quyền admin, không đọc đơn của người khác, chỉ admin được sửa sản phẩm và upload ảnh
-- Có bộ test cho Security Rules (`npm run test:rules`)
-
-## Đổi thông tin cửa hàng
-
-Mọi thông tin cửa hàng nằm trong [`src/config/store.ts`](src/config/store.ts): tên, khẩu hiệu, **màu chủ đạo** (`primaryColor`), chế độ Sáng/Tối mặc định, phí vận chuyển, thông tin liên hệ. Đổi ở đây là toàn bộ giao diện đổi theo.
-
-## Chạy thử nhanh với Firebase Emulator (không cần tài khoản Firebase)
-
-Yêu cầu: Node.js 20+ và Java 11+ (cho Emulator).
+Yêu cầu: Node.js 20 trở lên.
 
 ```bash
 npm install
-cp .env.emulator .env.local
-npm run emulators            # cửa sổ 1: chạy Auth, Firestore, Storage giả lập (UI: http://127.0.0.1:4000)
-npm run seed                 # cửa sổ 2: tạo dữ liệu mẫu
-npm run dev                  # mở http://localhost:3000
+npm run dev          # mở http://localhost:3000
 ```
 
-Đăng ký một tài khoản trên web, rồi cấp quyền admin:
+Lấy Gemini API Key miễn phí tại https://aistudio.google.com/apikey, dán vào bước 4 rồi bấm **Tự động tạo Website bằng AI**. Một lượt tạo thường mất 2 đến 5 phút với `gemini-2.5-flash`.
 
-```bash
-npm run set-admin -- email-cua-ban@example.com
+Build production: `npm run build && npm start`. Có thể deploy lên Vercel như mọi dự án Next.js (không cần biến môi trường).
+
+## Website được tạo ra (chế độ AI)
+
+Dự án Vite + React 19 + react-router-dom + Tailwind CSS 4 + Firebase:
+
+```
+index.html, vite.config.js, package.json, .env (cấu hình Firebase đã điền)
+firestore.rules, storage.rules, firestore.indexes.json, firebase.json, README.md
+src/
+  main.jsx, App.jsx, index.css (token màu theo theme), config/store.js
+  lib/firebase.js, lib/format.js
+  services/products.js, categories.js, orders.js
+  context/AuthContext.jsx, CartContext.jsx
+  components/Header, Footer, ThemeToggle, ProductCard, ProtectedRoute, ui
+  pages/Home, Products, ProductDetail, Cart, Checkout, Login, Register, MyOrders, OrderDetail
+  pages/admin/AdminLayout, AdminDashboard, AdminProducts, AdminProductForm, AdminOrders, AdminOrderDetail, AdminCategories
 ```
 
-Tải lại trang, menu tài khoản sẽ có mục **Trang quản trị**.
+Chạy: `npm install`, `npm run dev`. Các bước bật Firebase và cấp quyền admin có trong README của dự án được tạo.
 
-## Chạy với Firebase thật
-
-1. Tạo project tại [Firebase Console](https://console.firebase.google.com).
-2. Bật **Authentication** → Sign-in method: *Email/Password* và *Google*.
-3. Tạo **Firestore Database** và **Storage**.
-4. Project settings → *Your apps* → tạo Web app, chép cấu hình vào `.env.local` (theo mẫu [`.env.example`](.env.example)).
-5. Project settings → *Service accounts* → *Generate new private key*, chép `client_email` và `private_key` vào `FIREBASE_ADMIN_CLIENT_EMAIL` và `FIREBASE_ADMIN_PRIVATE_KEY`.
-6. Đưa rules và index lên Firebase:
-   ```bash
-   npx firebase login
-   npx firebase use --add          # chọn project vừa tạo
-   npm run deploy:rules
-   ```
-7. `npm run seed` (tùy chọn), `npm run dev`, đăng ký tài khoản rồi `npm run set-admin -- email`.
-
-> Không commit file `.env.local` và service account lên Git (đã có trong `.gitignore`).
-
-## Deploy lên Vercel
-
-1. Import repo vào [Vercel](https://vercel.com/new).
-2. Thêm toàn bộ biến môi trường trong `.env.example` vào *Settings → Environment Variables* (để `NEXT_PUBLIC_USE_FIREBASE_EMULATORS=false`, đặt `NEXT_PUBLIC_SITE_URL` là tên miền thật).
-3. Deploy. Sau đó vào Firebase Console → Authentication → *Settings → Authorized domains*, thêm tên miền Vercel để đăng nhập Google hoạt động.
-
-## Lệnh hữu ích
-
-| Lệnh | Mô tả |
-| --- | --- |
-| `npm run dev` | Chạy môi trường phát triển |
-| `npm run build` / `npm start` | Build và chạy bản production |
-| `npm run lint` / `npm run typecheck` | Kiểm tra code |
-| `npm run emulators` | Chạy Firebase Emulator, lưu dữ liệu vào `emulator-data/` khi tắt |
-| `npm run seed` | Tạo dữ liệu mẫu (bỏ qua nếu đã có sản phẩm) |
-| `npm run set-admin -- email [--revoke]` | Cấp hoặc thu hồi quyền admin |
-| `npm run test:rules` | Chạy test Security Rules trên Emulator |
-| `npm run deploy:rules` | Đưa Firestore/Storage rules và index lên Firebase |
-
-## Cấu trúc thư mục
+## Cấu trúc Web Master
 
 ```
 src/
-  app/
-    (shop)/          Trang khách: trang chủ, sản phẩm, giỏ hàng, thanh toán, đơn hàng, tài khoản
-    admin/           Trang quản trị
-    api/orders/      API đặt hàng (Firebase Admin SDK)
-  components/        UI dùng chung, shop/, admin/
-  config/store.ts    Cấu hình cửa hàng
-  context/           Auth, giỏ hàng, thông báo
-  lib/               Firebase, truy cập dữ liệu, kiểu dữ liệu, định dạng tiền
-firestore.rules, storage.rules, firestore.indexes.json
-scripts/             seed, set-admin
-tests/               Test Security Rules
+  app/page.tsx                 Builder (form cấu hình)
+  app/result/page.tsx          Kết quả: cây thư mục, code viewer, tải .zip
+  components/builder/          4 bước của form + bảng tóm tắt và tiến độ
+  components/result/           FileTree, CodeViewer, ResultView
+  lib/generator/blueprint.ts   Bản thiết kế 30 file và "hợp đồng" export của từng file
+  lib/generator/prompt.ts      System prompt chuẩn hóa gửi Gemini
+  lib/generator/gemini.ts      Gọi Gemini (JSON schema, thử lại, thông báo lỗi tiếng Việt)
+  lib/generator/index.ts       generateWebsiteCode(config) và regenerateFile(...)
+  lib/generator/static-files.ts Khung dự án tạo sẵn (package.json, theme CSS, rules...)
+  lib/generator/template-mode.ts Xuất template TechZone
+  lib/themes.ts                5 theme và mô tả phong cách gửi cho AI
+  store/builder-store.ts       Zustand (lưu cấu hình và kết quả gần nhất)
+templates/techzone/            Template Next.js + Firebase đã kiểm thử (dự án riêng, có README)
+scripts/pack-template.mjs      Đóng gói template thành public/templates/techzone.json khi dev/build
 ```
 
-## Mô hình dữ liệu (Firestore)
+## Muốn chỉnh
 
-| Collection | Trường chính |
-| --- | --- |
-| `users/{uid}` | email, displayName, phone, role (`customer` \| `admin`), createdAt |
-| `categories/{id}` | name, slug, description, sortOrder |
-| `products/{id}` | name, slug, sku, description, price, salePrice, images[], categoryId, stock, featured, active |
-| `orders/{id}` | userId, userEmail, items[], subtotal, shippingFee, total, status, paymentMethod, shipping{fullName, phone, address, note} |
+- **Thêm theme:** thêm một mục vào `THEMES` trong `src/lib/themes.ts` (màu xem trước + `promptGuide` mô tả phong cách).
+- **Đổi yêu cầu kỹ thuật gửi AI:** sửa `src/lib/generator/prompt.ts` và mô tả từng file trong `blueprint.ts`.
+- **Thêm model:** sửa `GEMINI_MODELS` trong `src/lib/site-types.ts`, hoặc chọn "Model khác..." ngay trên giao diện.
+- **Proxy:** phần "cài đặt nâng cao" cho phép đổi base URL của Gemini API.
 
-## Giới hạn hiện tại
+## Lưu ý
 
-- Lọc và tìm kiếm sản phẩm chạy phía trình duyệt, phù hợp cửa hàng vài trăm đến vài nghìn sản phẩm. Lớn hơn nên chuyển sang Algolia/Typesense hoặc phân trang Firestore.
-- Chỉ có thanh toán COD; có thể bổ sung VNPay/MoMo qua API route.
-- Ảnh đã upload nhưng không lưu sản phẩm sẽ còn trên Storage.
+- Code do AI viết có thể còn lỗi nhỏ tùy model. Dùng nút **Viết lại bằng AI** cho file lỗi, hoặc chọn chế độ **Template đã kiểm thử** khi cần bản chắc chắn chạy được.
+- Website tạo bằng AI đặt hàng trực tiếp từ trình duyệt; Security Rules chỉ cho khách tạo đơn của chính mình và chỉ được giảm tồn kho, nhưng không kiểm chứng tổng tiền. Template TechZone xử lý việc này trên server.

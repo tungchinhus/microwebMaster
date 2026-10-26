@@ -1,27 +1,28 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:where(.dark, .dark *));
-
 :root {
-  /* --brand được gán từ storeConfig.primaryColor trong layout gốc. */
-  --brand: #6366f1;
-  --background: #ffffff;
+  --background: #f6f7fb;
   --foreground: #0f172a;
   --card: #ffffff;
-  --muted: #f1f5f9;
+  --muted: #eef1f6;
   --muted-foreground: #64748b;
   --border: #e2e8f0;
+  --primary: #6d28d9;
+  --primary-foreground: #ffffff;
   color-scheme: light;
 }
 
-.dark {
-  --background: #0b1120;
-  --foreground: #e2e8f0;
-  --card: #111827;
-  --muted: #1e293b;
-  --muted-foreground: #94a3b8;
-  --border: #1f2937;
-  color-scheme: dark;
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0d17;
+    --foreground: #e5e7eb;
+    --card: #111526;
+    --muted: #1a1f33;
+    --muted-foreground: #94a3b8;
+    --border: #23293f;
+    --primary: #8b5cf6;
+    color-scheme: dark;
+  }
 }
 
 @theme inline {
@@ -31,9 +32,10 @@
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
-  --color-primary: var(--brand);
-  --color-primary-foreground: #ffffff;
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono-code), ui-monospace, SFMono-Regular, monospace;
 }
 
 body {

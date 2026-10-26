@@ -1,28 +1,26 @@
 {
-  "name": "techzone",
+  "name": "web-master",
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "pack-template": "node scripts/pack-template.mjs",
+    "predev": "npm run pack-template",
+    "prebuild": "npm run pack-template",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "next typegen && tsc --noEmit",
-    "emulators": "firebase emulators:start --project demo-techzone --import=./emulator-data --export-on-exit",
-    "seed": "node scripts/seed.mjs",
-    "set-admin": "node scripts/set-admin.mjs",
-    "deploy:rules": "firebase deploy --only firestore:rules,firestore:indexes,storage",
-    "test:rules": "firebase emulators:exec --project demo-techzone --only firestore,storage \"node --test tests/rules.test.mjs\""
+    "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
-    "firebase": "^13.1.0",
-    "firebase-admin": "^14.5.0",
+    "@google/genai": "^2.31.0",
+    "jszip": "^3.10.2",
     "lucide-react": "^1.61.0",
     "next": "16.4.3",
+    "prism-react-renderer": "^2.4.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "server-only": "^0.0.1",
-    "zod": "^4.6.7"
+    "zustand": "^5.0.16"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
@@ -31,7 +29,6 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.3",
-    "firebase-tools": "^15.34.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

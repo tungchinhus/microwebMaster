@@ -1,44 +1,22 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import { InlineScript } from "@/components/inline-script";
-import { THEME_STORAGE_KEY } from "@/lib/theme";
-import { storeConfig } from "@/config/store";
-import { AuthProvider } from "@/context/auth-context";
-import { CartProvider } from "@/context/cart-context";
-import { ToastProvider } from "@/context/toast-context";
+import { Inter, JetBrains_Mono } from "next/font/google";
+import { StoreHydrator } from "@/components/store-hydrator";
 import "./globals.css";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin", "vietnamese"] });
+const mono = JetBrains_Mono({ variable: "--font-mono-code", subsets: ["latin", "vietnamese"] });
 
 export const metadata: Metadata = {
-  title: {
-    default: `${storeConfig.name} - ${storeConfig.tagline}`,
-    template: `%s | ${storeConfig.name}`,
-  },
-  description: storeConfig.description,
+  title: { default: "Web Master - Tạo website bán hàng bằng AI", template: "%s | Web Master" },
+  description: "Chọn theme, nhập thông tin cửa hàng và để Gemini tạo toàn bộ mã nguồn website bán hàng React + Firebase.",
 };
-
-const themeScript = `(function(){try{var t=localStorage.getItem(${JSON.stringify(
-  THEME_STORAGE_KEY,
-)});var d=${JSON.stringify(storeConfig.defaultTheme)};var dark=t?t==="dark":d==="dark"||(d==="system"&&window.matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.classList.toggle("dark",dark)}catch(e){}})()`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="vi"
-      suppressHydrationWarning
-      className={`${inter.variable} h-full antialiased`}
-      style={{ "--brand": storeConfig.primaryColor } as React.CSSProperties}
-    >
-      <head>
-        <InlineScript html={themeScript} />
-      </head>
+    <html lang="vi" className={`${inter.variable} ${mono.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col font-sans">
-        <ToastProvider>
-          <AuthProvider>
-            <CartProvider>{children}</CartProvider>
-          </AuthProvider>
-        </ToastProvider>
+        <StoreHydrator />
+        {children}
       </body>
     </html>
   );

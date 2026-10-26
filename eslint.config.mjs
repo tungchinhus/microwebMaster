@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Template mẫu là một dự án riêng, có cấu hình lint của nó.
+    "templates/**",
+    "public/templates/**",
   ]),
 ]);
 

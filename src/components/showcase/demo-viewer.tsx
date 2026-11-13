@@ -3,18 +3,28 @@
 import { ArrowLeft, Maximize, Minimize, Monitor, Smartphone } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { applyVariant, variantsOf, type Project } from "@/lib/showcase/catalog";
 import { DesktopPreview, MobilePreview } from "./mini-site";
 import { Swatch } from "./template-detail";
 
 type Device = "desktop" | "mobile";
 
+const SMALL = "(max-width: 639px)";
+const subscribeSmall = (cb: () => void) => {
+  const mq = window.matchMedia(SMALL);
+  mq.addEventListener("change", cb);
+  return () => mq.removeEventListener("change", cb);
+};
+
 export function DemoViewer({ project }: { project: Project }) {
   const params = useSearchParams();
   const variants = variantsOf(project);
   const [variantId, setVariantId] = useState(variants.find((v) => v.id === params.get("giao-dien"))?.id ?? variants[0].id);
-  const [device, setDevice] = useState<Device>("desktop");
+  // Chưa bấm chọn thì màn hình nhỏ xem bản điện thoại (bản máy tính thu nhỏ quá khó đọc).
+  const [picked, setDevice] = useState<Device | null>(null);
+  const small = useSyncExternalStore(subscribeSmall, () => window.matchMedia(SMALL).matches, () => false);
+  const device: Device = picked ?? (small ? "mobile" : "desktop");
   const [fullscreen, setFullscreen] = useState(false);
   const shown = applyVariant(project, variantId);
 

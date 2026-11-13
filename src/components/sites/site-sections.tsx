@@ -78,7 +78,8 @@ export function FeaturesSection({ props }: Props) {
   return (
     <section>
       {props.title && <Title>{props.title}</Title>}
-      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {/* 4 hay 8 mục thì xếp 4 cột cho khỏi lẻ một thẻ ở hàng cuối */}
+      <ul className={`grid gap-3 sm:grid-cols-2 ${list.length % 4 === 0 ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
         {list.map((f) => (
           <li key={f} className="ws-card flex items-center gap-3 p-4 text-[15px]">
             <span className="ws-soft grid size-10 shrink-0 place-items-center">
@@ -133,13 +134,15 @@ export function GallerySection({ props }: Props) {
   const own = lines(props.images).map((u) => safeImageUrl(u)).filter((u): u is string => !!u);
   const fromProducts = products.map((p) => safeImageUrl(p.image)).filter((u): u is string => !!u);
   const images = own.length ? own : fromProducts;
-  const tiles = images.length ? images.slice(0, 8) : Array.from({ length: 6 }, () => "");
+  // Ô đầu chiếm 2 hàng: 5 hoặc 8 ô thì lưới 3 cột kín, không lẻ ô cuối.
+  const count = images.length >= 8 ? 8 : images.length >= 5 ? 5 : images.length;
+  const tiles = images.length ? images.slice(0, Math.max(count, 1)) : Array.from({ length: 5 }, () => "");
   return (
     <section>
       {props.title && <Title>{props.title}</Title>}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
         {tiles.map((src, i) => (
-          <div key={src + i} className={`ws-soft grid place-items-center overflow-hidden ${i === 0 ? "row-span-2 aspect-[3/4] md:aspect-auto" : "aspect-square"}`}>
+          <div key={src + i} className={`ws-soft grid place-items-center overflow-hidden ${i === 0 && tiles.length >= 3 ? "row-span-2 aspect-[3/4] md:aspect-auto" : "aspect-[4/3]"}`}>
             {src ? (
               // eslint-disable-next-line @next/next/no-img-element -- ảnh do admin dán link
               <img src={src} alt="" className="size-full object-cover" />

@@ -1,8 +1,9 @@
 import { ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { formatVnd } from "@/config/site";
-import { getCategory, projectsIn, type Category, type Project } from "@/lib/showcase/catalog";
+import { getCategory, projectsIn, variantsOf, type Category, type Project } from "@/lib/showcase/catalog";
 import { DesktopPreview } from "./mini-site";
+import { Swatch } from "./template-detail";
 
 export function ProjectCard({ project, showSummary = false }: { project: Project; showSummary?: boolean }) {
   return (
@@ -19,11 +20,21 @@ export function ProjectCard({ project, showSummary = false }: { project: Project
         )}
       </div>
       <div className="flex flex-1 flex-col gap-1.5 px-3 pt-4 pb-3">
-        <h3 className="text-xl font-semibold tracking-tight">{project.name}</h3>
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="text-xl font-semibold tracking-tight">{project.name}</h3>
+          <span className="flex items-center gap-1" title={`${variantsOf(project).length} giao diện`}>
+            {variantsOf(project).map((v) => (
+              <Swatch key={v.id} bg={v.palette.bg} accent={v.palette.accent} fg={v.palette.fg} size={10} />
+            ))}
+          </span>
+        </div>
         {showSummary && <p className="text-[15px] leading-relaxed text-muted-foreground">{project.summary}</p>}
-        <p className="mt-auto pt-1 text-[15px] text-foreground/80">
-          {getCategory(project.category)?.name} · <span className="font-medium text-foreground">từ {formatVnd(project.price)}</span>
-        </p>
+        <div className="mt-auto flex flex-wrap items-baseline justify-between gap-x-3 pt-1 text-[15px]">
+          <span className="text-foreground/75">
+            {getCategory(project.category)?.name} · {variantsOf(project).length} giao diện
+          </span>
+          <span className="font-medium">từ {formatVnd(project.price)}</span>
+        </div>
       </div>
     </Link>
   );

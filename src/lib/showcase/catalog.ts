@@ -24,6 +24,30 @@ export interface Palette {
   hero: string;
   /** Chữ trên khối hero */
   heroFg: string;
+  /** Nền thẻ (mặc định trắng) */
+  card?: string;
+}
+
+/** Phong cách hình khối và chữ của một giao diện. */
+export interface Look {
+  /** Hệ số bo góc: 0 vuông, 1 mặc định, 1.5 rất tròn */
+  radius: number;
+  /** Nút dạng viên thuốc hay bo nhẹ */
+  pillButtons: boolean;
+  /** Font tiêu đề */
+  headingFont: "sans" | "serif" | "mono";
+  headingWeight: number;
+  /** Logo ở giữa, menu bên dưới */
+  centeredHeader: boolean;
+}
+
+/** Một giao diện (biến thể) của mẫu mà khách có thể chọn. */
+export interface Variant {
+  id: string;
+  name: string;
+  description: string;
+  palette: Palette;
+  look: Look;
 }
 
 export interface Project {
@@ -43,6 +67,10 @@ export interface Project {
   /** Mẫu có thể tự tạo ngay trong Web Master bằng AI */
   aiReady?: boolean;
   featured?: boolean;
+  /** Giao diện riêng thêm vào sau 3 giao diện có sẵn */
+  extraVariants?: Variant[];
+  /** Giao diện đang áp dụng (do applyVariant gán) */
+  look?: Look;
 }
 
 export const CATEGORIES: Category[] = [
@@ -83,6 +111,15 @@ export const PROJECTS: Project[] = [
     nav: ["Điện thoại", "Laptop", "Phụ kiện", "Khuyến mãi"],
     aiReady: true,
     featured: true,
+    extraVariants: [
+      {
+        id: "tuoi-sang",
+        name: "Tươi sáng",
+        description: "Nền trắng, màu cam năng động, hợp chuỗi bán lẻ.",
+        palette: { bg: "#ffffff", fg: "#1c1917", accent: "#f97316", soft: "#ffedd5", hero: "#fff7ed", heroFg: "#1c1917", card: "#ffffff" },
+        look: { radius: 0.8, pillButtons: false, headingFont: "sans", headingWeight: 800, centeredHeader: false },
+      },
+    ],
   },
   {
     slug: "la-tra",
@@ -165,6 +202,15 @@ export const PROJECTS: Project[] = [
     announcement: "Giảm 20% cho lần đặt lịch đầu tiên",
     nav: ["Liệu trình", "Bảng giá", "Đặt lịch", "Ưu đãi"],
     featured: true,
+    extraVariants: [
+      {
+        id: "thao-moc",
+        name: "Thảo mộc",
+        description: "Xanh lá dịu, cảm giác tự nhiên, hợp spa thảo dược.",
+        palette: { bg: "#f6f8f3", fg: "#22301f", accent: "#5b7c4a", soft: "#e4ecdc", hero: "#dfe8d5", heroFg: "#22301f", card: "#ffffff" },
+        look: { radius: 1.6, pillButtons: true, headingFont: "serif", headingWeight: 600, centeredHeader: true },
+      },
+    ],
   },
   {
     slug: "sach-nha",
@@ -276,4 +322,78 @@ export function projectsIn(categoryId: string): Project[] {
 /** Dự án đầu tiên của mỗi lĩnh vực, dùng cho khung xem trước ở đầu trang chủ. */
 export function heroProjectFor(categoryId: string): Project | undefined {
   return projectsIn(categoryId)[0];
+}
+
+/* ---------------------------------------------------------------- Giao diện */
+
+export const DEFAULT_LOOK: Look = { radius: 1, pillButtons: true, headingFont: "sans", headingWeight: 800, centeredHeader: false };
+
+/** Trộn hai màu hex theo tỉ lệ t (0 = a, 1 = b). */
+function mix(a: string, b: string, t: number): string {
+  const pa = a.match(/\w\w/g)!.map((h) => parseInt(h, 16));
+  const pb = b.match(/\w\w/g)!.map((h) => parseInt(h, 16));
+  return `#${pa.map((v, i) => Math.round(v + (pb[i] - v) * t).toString(16).padStart(2, "0")).join("")}`;
+}
+
+function isDark(hex: string): boolean {
+  const [r, g, b] = hex.match(/\w\w/g)!.map((h) => parseInt(h, 16));
+  return r * 0.299 + g * 0.587 + b * 0.114 < 128;
+}
+
+/**
+ * Mỗi mẫu có sẵn 3 giao diện sinh từ bảng màu gốc, cộng thêm extraVariants nếu có:
+ * Nguyên bản (bo tròn, chữ đậm), Thanh lịch (nền kem, tiêu đề có chân, góc vuông, logo giữa),
+ * Đêm (nền tối, màu nhấn giữ nguyên, bo tròn nhiều).
+ */
+export function variantsOf(project: Project): Variant[] {
+  const base = project.palette;
+  const darkBase = isDark(base.bg);
+  const elegantBg = darkBase ? "#f7f3ec" : mix(base.bg, "#f3ede2", 0.7);
+  const variants: Variant[] = [
+    {
+      id: "nguyen-ban",
+      name: "Nguyên bản",
+      description: "Bố cục gốc, chữ đậm, bo góc mềm.",
+      palette: { ...base, card: base.card ?? (darkBase ? mix(base.bg, "#ffffff", 0.08) : "#ffffff") },
+      look: DEFAULT_LOOK,
+    },
+    {
+      id: "thanh-lich",
+      name: "Thanh lịch",
+      description: "Nền kem, tiêu đề có chân, góc vuông, logo ở giữa.",
+      palette: {
+        bg: elegantBg,
+        fg: "#1f1b16",
+        accent: darkBase ? mix(base.accent, "#1f1b16", 0.35) : base.accent,
+        soft: mix(elegantBg, "#1f1b16", 0.07),
+        hero: mix(elegantBg, "#1f1b16", 0.1),
+        heroFg: "#1f1b16",
+        card: "#fffdf9",
+      },
+      look: { radius: 0.15, pillButtons: false, headingFont: "serif", headingWeight: 600, centeredHeader: true },
+    },
+    {
+      id: "dem",
+      name: "Đêm",
+      description: "Nền tối, màu nhấn nổi bật, hợp sản phẩm công nghệ và giải trí.",
+      palette: {
+        bg: "#0c0c11",
+        fg: "#f4f4f5",
+        accent: isDark(base.accent) ? mix(base.accent, "#ffffff", 0.35) : base.accent,
+        soft: "#1b1b23",
+        hero: mix("#14141b", base.accent, 0.18),
+        heroFg: "#ffffff",
+        card: "#16161d",
+      },
+      look: { radius: 1.4, pillButtons: true, headingFont: "sans", headingWeight: 800, centeredHeader: false },
+    },
+  ];
+  return [...variants, ...(project.extraVariants ?? [])];
+}
+
+/** Trả về bản sao của mẫu với bảng màu và phong cách của giao diện đã chọn. */
+export function applyVariant(project: Project, variantId?: string | null): Project {
+  const all = variantsOf(project);
+  const v = all.find((x) => x.id === variantId) ?? all[0];
+  return { ...project, palette: v.palette, look: v.look };
 }

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { SITE } from "@/config/site";
-import { PROJECTS, getCategory, getProject } from "@/lib/showcase/catalog";
+import { PROJECTS, applyVariant, getCategory, getProject, variantsOf } from "@/lib/showcase/catalog";
 import { DesktopPreview } from "./mini-site";
 
 const PLANS = ["Cơ bản", "Doanh nghiệp", "Theo yêu cầu", "Chưa rõ, cần tư vấn"];
@@ -16,8 +16,11 @@ export function QuoteForm() {
   const params = useSearchParams();
   const [template, setTemplate] = useState(getProject(params.get("mau") ?? "")?.slug ?? "");
   const [plan, setPlan] = useState(PLANS.includes(params.get("goi") ?? "") ? params.get("goi")! : PLANS[0]);
+  const [variantId, setVariantId] = useState(params.get("giao-dien") ?? "");
   const [sent, setSent] = useState(false);
   const project = getProject(template);
+  const variants = project ? variantsOf(project) : [];
+  const variant = variants.find((v) => v.id === variantId) ?? variants[0];
 
   const submit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -27,12 +30,13 @@ export function QuoteForm() {
       `Điện thoại: ${data.get("phone")}`,
       `Email: ${data.get("email") || "(không có)"}`,
       `Mẫu quan tâm: ${project ? `${project.name} (${getCategory(project.category)?.name})` : "Chưa chọn"}`,
+      `Giao diện: ${variant ? variant.name : "Chưa chọn"}`,
       `Gói: ${plan}`,
       "",
       `${data.get("message") || ""}`,
     ];
     const subject = `Yêu cầu báo giá website${project ? ` - mẫu ${project.name}` : ""}`;
-    window.location.href = `mailto:${SITE.contactEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lines.join("\n"))}`;
+    window.location.assign(`mailto:${SITE.contactEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lines.join("\n"))}`);
     setSent(true);
   };
 
@@ -79,7 +83,7 @@ export function QuoteForm() {
         </label>
         <label className="space-y-2">
           <span className="text-sm font-medium">Mẫu quan tâm</span>
-          <select value={template} onChange={(e) => setTemplate(e.target.value)} className={field}>
+          <select value={template} onChange={(e) => { setTemplate(e.target.value); setVariantId(""); }} className={field}>
             <option value="">Chưa chọn</option>
             {PROJECTS.map((p) => (
               <option key={p.slug} value={p.slug}>
@@ -89,6 +93,12 @@ export function QuoteForm() {
           </select>
         </label>
         <label className="space-y-2">
+          <span className="text-sm font-medium">Giao diện</span>
+          <select value={variant?.id ?? ""} onChange={(e) => setVariantId(e.target.value)} className={field} disabled={!project}>
+            {project ? variants.map((v) => <option key={v.id} value={v.id}>{v.name}</option>) : <option value="">Chọn mẫu trước</option>}
+          </select>
+        </label>
+        <label className="space-y-2 sm:col-span-2">
           <span className="text-sm font-medium">Gói</span>
           <select value={plan} onChange={(e) => setPlan(e.target.value)} className={field}>
             {PLANS.map((p) => (
@@ -110,10 +120,12 @@ export function QuoteForm() {
         {project ? (
           <>
             <div className="overflow-hidden rounded-3xl shadow-xl shadow-black/10 ring-1 ring-black/5">
-              <DesktopPreview project={project} />
+              <DesktopPreview project={applyVariant(project, variant?.id)} />
             </div>
             <div>
-              <div className="text-xl font-semibold">{project.name}</div>
+              <div className="text-xl font-semibold">
+                {project.name} <span className="font-normal text-muted-foreground">· {variant?.name}</span>
+              </div>
               <p className="text-muted-foreground">{project.summary}</p>
             </div>
           </>

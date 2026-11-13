@@ -22,7 +22,7 @@ Trang chủ của Web Master là trang giới thiệu dịch vụ làm web theo 
 - `/bao-gia` form xin báo giá: mở ứng dụng email với nội dung điền sẵn, kèm nút Zalo.
 - `/tao-web` trình tạo web bằng AI (trước đây ở trang chủ).
 
-Sửa tên thương hiệu, email, số Zalo, giá khởi điểm trong `src/config/site.ts`; thêm hoặc sửa mẫu và lĩnh vực trong `src/lib/showcase/catalog.ts`. Bản xem trước mỗi mẫu được vẽ bằng HTML/CSS theo bảng màu của mẫu (`src/components/showcase/mini-site.tsx`), không cần ảnh chụp.
+Sửa tên thương hiệu, email, số Zalo, giá khởi điểm trong `src/config/site.ts`; thêm hoặc sửa mẫu và lĩnh vực trong `src/lib/showcase/catalog.ts`. Mỗi mẫu có sẵn 3 giao diện để khách chọn (Nguyên bản, Thanh lịch, Đêm), sinh tự động từ bảng màu gốc qua `variantsOf()`; thêm giao diện riêng bằng `extraVariants` của từng mẫu. Bản xem trước mỗi mẫu được vẽ bằng HTML/CSS theo bảng màu của mẫu (`src/components/showcase/mini-site.tsx`), không cần ảnh chụp.
 
 ## Chạy Web Master ở máy local
 

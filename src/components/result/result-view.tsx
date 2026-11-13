@@ -80,7 +80,7 @@ export function ResultView() {
         <Sparkles className="mx-auto size-10 text-primary" />
         <h1 className="text-xl font-semibold">Chưa có website nào được tạo</h1>
         <p className="text-sm text-muted-foreground">Điền cấu hình cửa hàng và bấm tạo website để xem mã nguồn tại đây.</p>
-        <ButtonLink href="/">Bắt đầu tạo</ButtonLink>
+        <ButtonLink href="/tao-web">Bắt đầu tạo</ButtonLink>
       </Card>
     );
   }
@@ -125,7 +125,7 @@ export function ResultView() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <ButtonLink href="/" variant="outline">Chỉnh cấu hình</ButtonLink>
+          <ButtonLink href="/tao-web" variant="outline">Chỉnh cấu hình</ButtonLink>
           <Button variant="outline" onClick={() => openInStackBlitz(result)} title="Mở trên StackBlitz, tự cài đặt và chạy ngay trong trình duyệt">
             <Play className="size-4" /> Chạy thử online
           </Button>

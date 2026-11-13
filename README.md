@@ -12,6 +12,53 @@ Web Master là bảng điều khiển cho phép chọn loại website, theme, nh
 - **Màn hình kết quả:** nút **Chạy thử online** (StackBlitz), cây thư mục, code viewer có số dòng và highlight, Copy Code, tải từng file, **Download Code (.zip)**, **Viết lại bằng AI** từng file theo yêu cầu (ví dụ "thêm bộ lọc theo khoảng giá"), hướng dẫn chạy nhanh.
 - **Bảo mật API Key:** trình duyệt gọi thẳng Gemini API bằng `@google/genai`, key không đi qua máy chủ Web Master. Key chỉ được lưu vào localStorage khi bạn tick "Nhớ key".
 
+## Trang giới thiệu và kho mẫu
+
+Trang chủ của Web Master là trang giới thiệu dịch vụ làm web theo mẫu:
+
+- `/` hero có khung xem trước desktop + mobile đổi theo lĩnh vực, lưới lĩnh vực, mẫu tiêu biểu, quy trình, bảng giá, hỏi đáp.
+- `/kho` kho mẫu, lọc theo lĩnh vực (`/kho?loai=giao-duc`).
+- `/mau/<slug>` chi tiết từng mẫu, nút xin báo giá và (với mẫu có sẵn) tự tạo bằng AI.
+- `/bao-gia` form xin báo giá: mở ứng dụng email với nội dung điền sẵn, kèm nút Zalo.
+- `/demo/<slug>` xem demo toàn màn hình: đổi giao diện, đổi máy tính / điện thoại. Mẫu có `demoUrl` sẽ mở bản chạy thật trong khung, không có thì dùng bản xem trước.
+- `/so-sanh?mau=a,b,c` so sánh 2 đến 3 mẫu cạnh nhau (chọn bằng nút "+ So sánh" trên thẻ mẫu).
+- `/kho` có ô tìm kiếm không phân biệt dấu (`?q=`) và bộ lọc theo tính năng (`?tinh-nang=gio-hang,dat-lich`). Nhãn tính năng của từng mẫu khai báo trong `PROJECT_FEATURES`.
+- `/tao-web` trình tạo web bằng AI (trước đây ở trang chủ).
+
+Sửa tên thương hiệu, email, số Zalo, giá khởi điểm trong `src/config/site.ts`; thêm hoặc sửa mẫu và lĩnh vực trong `src/lib/showcase/catalog.ts`. Mỗi mẫu có sẵn 3 giao diện để khách chọn (Nguyên bản, Thanh lịch, Đêm), sinh tự động từ bảng màu gốc qua `variantsOf()`; thêm giao diện riêng bằng `extraVariants` của từng mẫu. Bản xem trước mỗi mẫu được vẽ bằng HTML/CSS theo bảng màu của mẫu (`src/components/showcase/mini-site.tsx`), không cần ảnh chụp.
+
+## Web của khách hàng và chế độ chỉnh sửa của admin
+
+Mỗi mẫu trong kho được ráp từ các **khối** (banner, điểm nổi bật, giới thiệu, con số, thư viện ảnh, kêu gọi hành động, hỏi đáp, cùng sản phẩm, đặt lịch... tuỳ lĩnh vực; bố cục từng lĩnh vực ở `src/lib/sites/layouts.ts`). Tạo web cho khách là chép bố cục đó vào vùng Nội dung; ở chế độ sửa admin kéo thả (hoặc bấm mũi tên) để sắp xếp, ẩn với khách, sửa chữ, xoá hoặc chèn lại khối. Khối của mẫu miễn phí, chỉ component mua thêm mới cộng vào báo giá. Web tạo trước đây tự được chuyển sang bố cục khối khi mở. Trang chi tiết mẫu có nút **Admin: tạo web cho khách từ mẫu này** khi đã đăng nhập admin.
+
+Khi chào hàng: khách chọn mẫu và giao diện, thấy thiếu đăng nhập hay giỏ hàng thì admin thêm ngay trên trang và báo giá phần mua thêm.
+
+1. Vào `/quan-tri`, đăng nhập admin, điền tên khách, chọn mẫu và giao diện, bấm **Tạo và mở chỉnh sửa**.
+2. Web của khách mở ở `/site?id=<mã web>`. Admin thấy thanh đen trên cùng; bấm **Bật chỉnh sửa** để hiện các vùng: Trên banner, Đầu trang, Nội dung, Chân trang, Nút nổi.
+3. Bấm **+ Thêm component** ở vùng muốn đặt và chọn từ thư viện: Đăng nhập khách hàng, Giỏ hàng, Tìm kiếm, Dải khuyến mãi, Danh sách sản phẩm, Đặt lịch, Form liên hệ, Đánh giá, Đăng ký nhận tin, Nút Zalo. Mỗi component có giá mua thêm; thanh admin cộng tổng. Di chuột vào component để đổi thứ tự, sửa nội dung (tiêu đề, mã giảm giá, số Zalo) hoặc gỡ. Đổi được cả giao diện và tên hiển thị.
+4. Trên thanh admin: **Sản phẩm** để nhập sản phẩm, dịch vụ thật (tên, giá, link ảnh, mô tả; chưa nhập thì dùng sản phẩm mẫu), **Chữ banner** để đổi dòng thông báo, tiêu đề lớn và mô tả.
+5. Bấm **Lưu**: chỉ web đó được cập nhật, và ai đang mở web đó thấy thay đổi ngay, không cần tải lại.
+
+Trên điện thoại, banner đầu trang dùng bản HTML co giãn (`site-hero.tsx`) thay cho bản dựng thu nhỏ của mẫu.
+
+Các component chạy thật: giỏ hàng thêm, bớt, đặt hàng COD; đăng nhập và đăng ký bằng email; form đặt lịch, liên hệ, nhận tin gửi về `/quan-tri` (nút **Đơn & yêu cầu** của từng web). Thêm component mới trong `src/lib/sites/components.ts` (khai báo) và `src/components/sites/site-blocks.tsx` (giao diện).
+
+**Nơi lưu dữ liệu:**
+
+- **Chế độ thử (mặc định):** không cần cấu hình, dữ liệu nằm trong localStorage của trình duyệt đang dùng, cập nhật chéo tab. Đăng nhập admin bằng `admin@demo.local`, mật khẩu `admin123` (đổi bằng biến `NEXT_PUBLIC_DEMO_ADMIN_PASSWORD`). Chế độ này chỉ để trình diễn trên một máy, không có bảo mật thật và khách ở máy khác không thấy web.
+- **Firebase (dùng thật):** tạo một project Firebase cho chính Web Master, bật Authentication (Email/Password) và Firestore, rồi đặt các biến sau trong `.env.local` (hoặc biến môi trường khi build):
+
+  ```
+  NEXT_PUBLIC_FIREBASE_API_KEY=...
+  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
+  NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
+  NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=...
+  NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
+  NEXT_PUBLIC_FIREBASE_APP_ID=...
+  ```
+
+  Đưa luật bảo mật lên: `firebase deploy --only firestore:rules --project <project-id>` (file `firestore.rules` ở thư mục gốc). Tạo tài khoản admin trong Authentication, rồi trong Firestore tạo tài liệu `admins/<uid của tài khoản đó>` (nội dung tuỳ ý). Chỉ tài khoản có trong `admins` mới tạo, sửa, xoá web và đọc đơn hàng; khách chỉ xem web qua link và gửi form.
+
 ## Chạy Web Master ở máy local
 
 Yêu cầu: Node.js 20 trở lên.

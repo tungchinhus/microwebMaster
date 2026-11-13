@@ -67,6 +67,8 @@ export interface Project {
   /** Mẫu có thể tự tạo ngay trong Web Master bằng AI */
   aiReady?: boolean;
   featured?: boolean;
+  /** Link bản chạy thật (nếu có). Không có thì nút Xem demo mở bản xem trước toàn màn hình. */
+  demoUrl?: string;
   /** Giao diện riêng thêm vào sau 3 giao diện có sẵn */
   extraVariants?: Variant[];
   /** Giao diện đang áp dụng (do applyVariant gán) */
@@ -306,6 +308,65 @@ export const PROJECTS: Project[] = [
     nav: ["Dòng xe", "Bảng giá", "Lái thử", "Dịch vụ"],
   },
 ];
+
+/* ---------------------------------------------------------------- Tính năng */
+
+export const FEATURES = [
+  { id: "gio-hang", name: "Giỏ hàng" },
+  { id: "thanh-toan", name: "Thanh toán online" },
+  { id: "dang-nhap", name: "Đăng nhập khách hàng" },
+  { id: "quan-tri", name: "Trang quản trị" },
+  { id: "dat-lich", name: "Đặt lịch" },
+  { id: "form", name: "Form liên hệ / báo giá" },
+  { id: "khuyen-mai", name: "Mã giảm giá, khuyến mãi" },
+  { id: "blog", name: "Blog, tin tức" },
+  { id: "tien-do", name: "Theo dõi tiến độ" },
+  { id: "bieu-do", name: "Biểu đồ, thống kê" },
+  { id: "3d", name: "Không gian 3D" },
+  { id: "xep-hang", name: "Bảng xếp hạng" },
+] as const;
+
+export type FeatureId = (typeof FEATURES)[number]["id"];
+
+const PROJECT_FEATURES: Record<string, FeatureId[]> = {
+  techzone: ["gio-hang", "thanh-toan", "dang-nhap", "quan-tri", "khuyen-mai", "bieu-do"],
+  "la-tra": ["gio-hang", "thanh-toan", "khuyen-mai", "blog", "quan-tri"],
+  "moc-decor": ["gio-hang", "thanh-toan", "form", "quan-tri"],
+  fitgear: ["gio-hang", "thanh-toan", "dang-nhap", "khuyen-mai", "quan-tri"],
+  "english-hub": ["dang-nhap", "thanh-toan", "tien-do", "xep-hang", "quan-tri"],
+  "code-kid": ["dat-lich", "form", "tien-do", "dang-nhap", "quan-tri"],
+  "an-nhien-spa": ["dat-lich", "form", "khuyen-mai", "dang-nhap", "quan-tri"],
+  "sach-nha": ["form", "dat-lich", "quan-tri"],
+  "cafe-som": ["form", "khuyen-mai"],
+  "nha-mau-3d": ["3d", "dat-lich", "form"],
+  "viec-nhanh": ["dang-nhap", "form", "quan-tri", "blog"],
+  "o-chu-vui": ["xep-hang", "dang-nhap"],
+  "data-pulse": ["bieu-do", "dang-nhap", "quan-tri"],
+  "auto-viet": ["dat-lich", "form", "khuyen-mai", "quan-tri"],
+};
+
+export function featuresOf(project: Project): FeatureId[] {
+  return PROJECT_FEATURES[project.slug] ?? [];
+}
+
+export function featureName(id: string): string {
+  return FEATURES.find((f) => f.id === id)?.name ?? id;
+}
+
+/** Bỏ dấu tiếng Việt và viết thường, để tìm "gio hang" ra "Giỏ hàng". */
+export function normalizeVi(text: string): string {
+  return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase();
+}
+
+/** Tìm theo tên, mô tả, lĩnh vực, tính năng; không phân biệt dấu. */
+export function matchesQuery(project: Project, query: string): boolean {
+  const q = normalizeVi(query.trim());
+  if (!q) return true;
+  const hay = normalizeVi(
+    [project.name, project.summary, project.description, getCategory(project.category)?.name ?? "", ...project.features, ...featuresOf(project).map(featureName)].join(" "),
+  );
+  return q.split(/\s+/).every((word) => hay.includes(word));
+}
 
 export function getCategory(id: string): Category | undefined {
   return CATEGORIES.find((c) => c.id === id);

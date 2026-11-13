@@ -20,6 +20,9 @@ Trang chủ của Web Master là trang giới thiệu dịch vụ làm web theo 
 - `/kho` kho mẫu, lọc theo lĩnh vực (`/kho?loai=giao-duc`).
 - `/mau/<slug>` chi tiết từng mẫu, nút xin báo giá và (với mẫu có sẵn) tự tạo bằng AI.
 - `/bao-gia` form xin báo giá: mở ứng dụng email với nội dung điền sẵn, kèm nút Zalo.
+- `/demo/<slug>` xem demo toàn màn hình: đổi giao diện, đổi máy tính / điện thoại. Mẫu có `demoUrl` sẽ mở bản chạy thật trong khung, không có thì dùng bản xem trước.
+- `/so-sanh?mau=a,b,c` so sánh 2 đến 3 mẫu cạnh nhau (chọn bằng nút "+ So sánh" trên thẻ mẫu).
+- `/kho` có ô tìm kiếm không phân biệt dấu (`?q=`) và bộ lọc theo tính năng (`?tinh-nang=gio-hang,dat-lich`). Nhãn tính năng của từng mẫu khai báo trong `PROJECT_FEATURES`.
 - `/tao-web` trình tạo web bằng AI (trước đây ở trang chủ).
 
 Sửa tên thương hiệu, email, số Zalo, giá khởi điểm trong `src/config/site.ts`; thêm hoặc sửa mẫu và lĩnh vực trong `src/lib/showcase/catalog.ts`. Mỗi mẫu có sẵn 3 giao diện để khách chọn (Nguyên bản, Thanh lịch, Đêm), sinh tự động từ bảng màu gốc qua `variantsOf()`; thêm giao diện riêng bằng `extraVariants` của từng mẫu. Bản xem trước mỗi mẫu được vẽ bằng HTML/CSS theo bảng màu của mẫu (`src/components/showcase/mini-site.tsx`), không cần ảnh chụp.

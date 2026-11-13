@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProjectCard } from "@/components/showcase/cards";
+import { CompareBar } from "@/components/showcase/compare-ui";
 import { TemplateDetail } from "@/components/showcase/template-detail";
 import { SiteFooter, SiteHeader } from "@/components/site-header";
 import { PROJECTS, getCategory, getProject } from "@/lib/showcase/catalog";
@@ -41,6 +42,7 @@ export default async function TemplatePage({ params }: PageProps<"/mau/[slug]">)
             ))}
           </div>
         </section>
+        <CompareBar />
       </main>
       <SiteFooter />
     </>

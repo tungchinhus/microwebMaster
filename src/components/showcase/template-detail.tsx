@@ -1,6 +1,7 @@
 "use client";
 
-import { Check, Sparkles } from "lucide-react";
+import { Check, Maximize2, Sparkles } from "lucide-react";
+import { CompareToggle } from "./compare-ui";
 import Link from "next/link";
 import { useState } from "react";
 import { SITE, formatVnd } from "@/config/site";
@@ -28,9 +29,18 @@ export function TemplateDetail({ project, categoryName }: { project: Project; ca
     <div className="mt-6 grid gap-12 lg:grid-cols-[1.5fr_1fr]">
       <div className="space-y-8">
         <div className="relative pr-[12%] pb-[8%]">
-          <div key={variantId} className="animate-[fadeUp_.4s_ease] overflow-hidden rounded-3xl shadow-2xl shadow-black/10 ring-1 ring-black/5">
+          <Link
+            href={`/demo/${project.slug}?giao-dien=${variantId}`}
+            key={variantId}
+            className="group relative block animate-[fadeUp_.4s_ease] overflow-hidden rounded-3xl shadow-2xl shadow-black/10 ring-1 ring-black/5"
+          >
             <DesktopPreview project={shown} />
-          </div>
+            <span className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition group-hover:bg-black/30 group-hover:opacity-100">
+              <span className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 font-semibold text-zinc-900 shadow-lg">
+                <Maximize2 className="size-4" /> Xem demo
+              </span>
+            </span>
+          </Link>
           <div
             key={`${variantId}-m`}
             className="absolute right-0 bottom-0 w-[24%] animate-[fadeUp_.55s_ease] overflow-hidden rounded-[22px] border-[5px] border-white bg-white shadow-2xl shadow-black/20 dark:border-zinc-800"
@@ -77,7 +87,10 @@ export function TemplateDetail({ project, categoryName }: { project: Project; ca
 
       <div className="space-y-6">
         <div className="space-y-3">
-          <span className="text-[15px] font-medium text-primary">{categoryName}</span>
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-[15px] font-medium text-primary">{categoryName}</span>
+            <CompareToggle slug={project.slug} className="border border-border px-3 py-1.5 text-xs" />
+          </div>
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">{project.name}</h1>
           <p className="text-lg leading-relaxed text-muted-foreground">{project.description}</p>
         </div>
@@ -104,10 +117,16 @@ export function TemplateDetail({ project, categoryName }: { project: Project; ca
             >
               Xin báo giá giao diện này
             </Link>
+            <Link
+              href={`/demo/${project.slug}?giao-dien=${variantId}`}
+              className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-foreground/80 py-3 font-semibold transition hover:bg-foreground hover:text-background"
+            >
+              <Maximize2 className="size-4" /> Xem demo toàn màn hình
+            </Link>
             {project.aiReady && (
               <Link
                 href="/tao-web"
-                className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-foreground/80 py-3 font-semibold transition hover:bg-foreground hover:text-background"
+                className="inline-flex items-center justify-center gap-2 rounded-full py-2 text-[15px] font-medium text-muted-foreground transition hover:text-foreground"
               >
                 <Sparkles className="size-4" /> Tự tạo miễn phí bằng AI
               </Link>

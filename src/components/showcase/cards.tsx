@@ -3,6 +3,7 @@ import Link from "next/link";
 import { formatVnd } from "@/config/site";
 import { getCategory, projectsIn, variantsOf, type Category, type Project } from "@/lib/showcase/catalog";
 import { DesktopPreview } from "./mini-site";
+import { CompareToggle } from "./compare-ui";
 import { Swatch } from "./template-detail";
 
 export function ProjectCard({ project, showSummary = false }: { project: Project; showSummary?: boolean }) {
@@ -18,6 +19,7 @@ export function ProjectCard({ project, showSummary = false }: { project: Project
             <Sparkles className="size-3" /> Tạo bằng AI
           </span>
         )}
+        <CompareToggle slug={project.slug} className="absolute top-3 right-3 shadow-sm" />
       </div>
       <div className="flex flex-1 flex-col gap-1.5 px-3 pt-4 pb-3">
         <div className="flex items-center justify-between gap-3">

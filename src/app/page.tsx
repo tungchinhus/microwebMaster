@@ -1,6 +1,7 @@
 import { ArrowRight, Check, Clock, MessagesSquare, Palette, Rocket, ShieldCheck, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { CategoryCard, ProjectCard } from "@/components/showcase/cards";
+import { CompareBar } from "@/components/showcase/compare-ui";
 import { HeroShowcase } from "@/components/showcase/hero-showcase";
 import { SiteFooter, SiteHeader } from "@/components/site-header";
 import { SITE, formatVnd } from "@/config/site";
@@ -215,6 +216,7 @@ export default function HomePage() {
             ))}
           </div>
         </section>
+        <CompareBar />
       </main>
       <SiteFooter />
     </>

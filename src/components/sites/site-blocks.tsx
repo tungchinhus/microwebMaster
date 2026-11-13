@@ -9,6 +9,7 @@ import { safeImageUrl, type PlacedComponent, type Submission } from "@/lib/sites
 import { KIND_ICON } from "@/components/showcase/mini-site";
 import { getCategory } from "@/lib/showcase/catalog";
 import { useSiteRuntime } from "./site-runtime";
+import { AboutSection, CtaSection, FaqSection, FeaturesSection, GallerySection, HeroSection, StatsSection } from "./site-sections";
 
 /* ------------------------------------------------------------------ Gửi form */
 
@@ -497,6 +498,13 @@ export function LoginModal() {
 
 export function renderBlock(c: PlacedComponent): React.ReactNode {
   const map: Record<ComponentType, React.ReactNode> = {
+    hero: <HeroSection />,
+    features: <FeaturesSection props={c.props} />,
+    about: <AboutSection props={c.props} />,
+    stats: <StatsSection props={c.props} />,
+    gallery: <GallerySection props={c.props} />,
+    cta: <CtaSection props={c.props} />,
+    faq: <FaqSection props={c.props} />,
     login: <HeaderLogin />,
     cart: <HeaderCart />,
     search: <HeaderSearch />,

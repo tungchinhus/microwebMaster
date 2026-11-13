@@ -1,11 +1,12 @@
 "use client";
 
-import { Check, Maximize2, Sparkles } from "lucide-react";
+import { Check, Maximize2, ShieldCheck, Sparkles } from "lucide-react";
 import { CompareToggle } from "./compare-ui";
 import Link from "next/link";
 import { useState } from "react";
 import { SITE, formatVnd } from "@/config/site";
 import { applyVariant, variantsOf, type Project } from "@/lib/showcase/catalog";
+import { useSessionUser } from "@/lib/sites/hooks";
 import { DesktopPreview, MobilePreview } from "./mini-site";
 
 /** Ba chấm màu tóm tắt bảng màu của một giao diện. */
@@ -24,6 +25,7 @@ export function TemplateDetail({ project, categoryName }: { project: Project; ca
   const [variantId, setVariantId] = useState(variants[0].id);
   const shown = applyVariant(project, variantId);
   const variant = variants.find((v) => v.id === variantId)!;
+  const isAdmin = !!useSessionUser()?.isAdmin;
 
   return (
     <div className="mt-6 grid gap-12 lg:grid-cols-[1.5fr_1fr]">
@@ -111,6 +113,14 @@ export function TemplateDetail({ project, categoryName }: { project: Project; ca
             Bàn giao trong {SITE.deliveryDays} · Hoàn tiền trong {SITE.refundDays} ngày
           </div>
           <div className="mt-5 flex flex-col gap-3">
+            {isAdmin && (
+              <Link
+                href={`/quan-tri?mau=${project.slug}&giao-dien=${variantId}#tao-web`}
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-zinc-900 py-3.5 font-semibold text-white transition hover:bg-zinc-800"
+              >
+                <ShieldCheck className="size-4" /> Admin: tạo web cho khách từ mẫu này
+              </Link>
+            )}
             <Link
               href={`/bao-gia?mau=${project.slug}&giao-dien=${variantId}`}
               className="inline-flex items-center justify-center rounded-full bg-primary py-3.5 text-lg font-semibold text-primary-foreground transition hover:brightness-110"

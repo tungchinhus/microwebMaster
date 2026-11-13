@@ -29,6 +29,8 @@ Sửa tên thương hiệu, email, số Zalo, giá khởi điểm trong `src/con
 
 ## Web của khách hàng và chế độ chỉnh sửa của admin
 
+Mỗi mẫu trong kho được ráp từ các **khối** (banner, điểm nổi bật, giới thiệu, con số, thư viện ảnh, kêu gọi hành động, hỏi đáp, cùng sản phẩm, đặt lịch... tuỳ lĩnh vực; bố cục từng lĩnh vực ở `src/lib/sites/layouts.ts`). Tạo web cho khách là chép bố cục đó vào vùng Nội dung; ở chế độ sửa admin kéo thả (hoặc bấm mũi tên) để sắp xếp, ẩn với khách, sửa chữ, xoá hoặc chèn lại khối. Khối của mẫu miễn phí, chỉ component mua thêm mới cộng vào báo giá. Web tạo trước đây tự được chuyển sang bố cục khối khi mở. Trang chi tiết mẫu có nút **Admin: tạo web cho khách từ mẫu này** khi đã đăng nhập admin.
+
 Khi chào hàng: khách chọn mẫu và giao diện, thấy thiếu đăng nhập hay giỏ hàng thì admin thêm ngay trên trang và báo giá phần mua thêm.
 
 1. Vào `/quan-tri`, đăng nhập admin, điền tên khách, chọn mẫu và giao diện, bấm **Tạo và mở chỉnh sửa**.

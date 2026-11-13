@@ -5,6 +5,10 @@ export interface PlacedComponent {
   uid: string;
   type: ComponentType;
   props: Record<string, string>;
+  /** Khối có sẵn trong mẫu hoặc đã tính trong giá mẫu: không cộng phí mua thêm */
+  included?: boolean;
+  /** Admin ẩn tạm: vẫn giữ chỗ và nội dung, khách không thấy */
+  hidden?: boolean;
 }
 
 export type SiteRegions = Record<RegionId, PlacedComponent[]>;
@@ -41,6 +45,8 @@ export interface CustomerSite {
   /** Sản phẩm thật; rỗng thì dùng sản phẩm mẫu theo lĩnh vực */
   products?: SiteProduct[];
   hero?: SiteHeroText;
+  /** 2 = phần thân mẫu đã tách thành các khối trong vùng Nội dung */
+  layout?: number;
   createdAt: number;
   updatedAt: number;
   updatedBy?: string;
@@ -69,7 +75,13 @@ export function normalizeRegions(raw: unknown): SiteRegions {
     if (!Array.isArray(list)) continue;
     out[r.id] = list
       .filter((c): c is PlacedComponent => !!c && typeof c === "object" && !!getComponentDef((c as PlacedComponent).type))
-      .map((c) => ({ uid: String(c.uid), type: c.type, props: { ...(c.props ?? {}) } }));
+      .map((c) => ({
+        uid: String(c.uid),
+        type: c.type,
+        props: Object.fromEntries(Object.entries(c.props ?? {}).map(([k, v]) => [k, String(v).slice(0, 4000)])),
+        ...(c.included ? { included: true } : {}),
+        ...(c.hidden ? { hidden: true } : {}),
+      }));
   }
   return out;
 }
@@ -78,15 +90,26 @@ export function newUid(): string {
   return Math.random().toString(36).slice(2, 10);
 }
 
+/** Các component đang hiện cho khách (bỏ qua khối bị ẩn). */
 export function placedTypes(regions: SiteRegions): Set<ComponentType> {
+  return new Set(Object.values(regions).flat().filter((c) => !c.hidden).map((c) => c.type));
+}
+
+/** Mọi component đã đặt, kể cả khối ẩn (để biết component chỉ được đặt một lần đã có chưa). */
+export function allTypes(regions: SiteRegions): Set<ComponentType> {
   return new Set(Object.values(regions).flat().map((c) => c.type));
+}
+
+/** Các component mua thêm (không tính khối có sẵn của mẫu). */
+export function addons(regions: SiteRegions): PlacedComponent[] {
+  return Object.values(regions)
+    .flat()
+    .filter((c) => !c.included && !getComponentDef(c.type)?.section);
 }
 
 /** Tổng giá các component đã gắn thêm. */
 export function addonTotal(regions: SiteRegions): number {
-  return Object.values(regions)
-    .flat()
-    .reduce((sum, c) => sum + (COMPONENTS.find((d) => d.type === c.type)?.price ?? 0), 0);
+  return addons(regions).reduce((sum, c) => sum + (COMPONENTS.find((d) => d.type === c.type)?.price ?? 0), 0);
 }
 
 /** Thời điểm hiện tại (ms), tách ra hàm riêng để gọi từ trình xử lý sự kiện. */

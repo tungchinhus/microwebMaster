@@ -19,6 +19,8 @@ export interface ComponentField {
   key: string;
   label: string;
   multiline?: boolean;
+  /** Gợi ý khi để trống (thường là nội dung lấy từ mẫu) */
+  placeholder?: string;
 }
 
 export interface ComponentDef {
@@ -34,9 +36,18 @@ export interface ComponentDef {
   defaults?: Record<string, string>;
   /** Component cần có component khác mới chạy đủ (ví dụ nút "Thêm vào giỏ" cần giỏ hàng) */
   worksBestWith?: ComponentType[];
+  /** Khối dựng sẵn của mẫu (banner, giới thiệu...): miễn phí, không tính vào phần mua thêm */
+  section?: boolean;
 }
 
 export type ComponentType =
+  | "hero"
+  | "features"
+  | "about"
+  | "stats"
+  | "gallery"
+  | "cta"
+  | "faq"
   | "login"
   | "cart"
   | "search"
@@ -48,7 +59,109 @@ export type ComponentType =
   | "newsletter"
   | "zalo";
 
-export const COMPONENTS: ComponentDef[] = [
+const ONE_PER_LINE = "Mỗi dòng một mục, để trống thì dùng nội dung của mẫu";
+
+/** Các khối dựng nên trang mẫu. Admin sắp xếp, ẩn, xoá hoặc chèn lại; không tính phí. */
+export const SECTIONS: ComponentDef[] = [
+  {
+    type: "hero",
+    name: "Banner đầu trang",
+    description: "Tiêu đề lớn, mô tả và nút chính. Sửa chữ bằng nút Chữ banner.",
+    price: 0,
+    regions: ["main"],
+    unique: true,
+    section: true,
+  },
+  {
+    type: "features",
+    name: "Điểm nổi bật",
+    description: "Các thẻ nêu điểm mạnh của cửa hàng, dịch vụ.",
+    price: 0,
+    regions: ["main"],
+    unique: true,
+    section: true,
+    fields: [
+      { key: "title", label: "Tiêu đề khối" },
+      { key: "items", label: "Các điểm nổi bật", multiline: true, placeholder: ONE_PER_LINE },
+    ],
+    defaults: { title: "Vì sao chọn chúng tôi", items: "" },
+  },
+  {
+    type: "about",
+    name: "Giới thiệu",
+    description: "Đoạn giới thiệu kèm ảnh.",
+    price: 0,
+    regions: ["main"],
+    unique: true,
+    section: true,
+    fields: [
+      { key: "title", label: "Tiêu đề khối" },
+      { key: "text", label: "Nội dung", multiline: true, placeholder: "Để trống thì dùng mô tả của mẫu" },
+      { key: "image", label: "Link ảnh (https://...)", placeholder: "Để trống thì hiện hình minh hoạ" },
+    ],
+    defaults: { title: "Về chúng tôi", text: "", image: "" },
+  },
+  {
+    type: "stats",
+    name: "Con số ấn tượng",
+    description: "Dải 3–4 con số: năm kinh nghiệm, khách hàng, đánh giá...",
+    price: 0,
+    regions: ["main"],
+    unique: true,
+    section: true,
+    fields: [{ key: "items", label: "Các con số", multiline: true, placeholder: "Mỗi dòng: con số | ý nghĩa, ví dụ 2.000+ | Khách hàng" }],
+    defaults: { items: "5 năm | Kinh nghiệm\n2.000+ | Khách hàng\n4,9/5 | Đánh giá trung bình\n24/7 | Hỗ trợ" },
+  },
+  {
+    type: "gallery",
+    name: "Thư viện ảnh",
+    description: "Lưới ảnh không gian, sản phẩm, công trình.",
+    price: 0,
+    regions: ["main"],
+    unique: true,
+    section: true,
+    fields: [
+      { key: "title", label: "Tiêu đề khối" },
+      { key: "images", label: "Link ảnh", multiline: true, placeholder: "Mỗi dòng một link https://..., để trống thì dùng ảnh sản phẩm hoặc hình minh hoạ" },
+    ],
+    defaults: { title: "Hình ảnh", images: "" },
+  },
+  {
+    type: "cta",
+    name: "Kêu gọi hành động",
+    description: "Dải màu nổi bật với một câu mời và nút bấm.",
+    price: 0,
+    regions: ["main"],
+    section: true,
+    fields: [
+      { key: "title", label: "Tiêu đề" },
+      { key: "text", label: "Mô tả", multiline: true },
+      { key: "button", label: "Chữ trên nút" },
+      { key: "link", label: "Link của nút", placeholder: "Để trống thì tới khối đặt lịch, liên hệ hoặc sản phẩm" },
+    ],
+    defaults: { title: "Sẵn sàng bắt đầu?", text: "Để lại thông tin, chúng tôi gọi lại trong 15 phút.", button: "Liên hệ ngay", link: "" },
+  },
+  {
+    type: "faq",
+    name: "Hỏi đáp",
+    description: "Các câu hỏi thường gặp, bấm để mở câu trả lời.",
+    price: 0,
+    regions: ["main"],
+    unique: true,
+    section: true,
+    fields: [
+      { key: "title", label: "Tiêu đề khối" },
+      { key: "items", label: "Câu hỏi và trả lời", multiline: true, placeholder: "Mỗi dòng: câu hỏi | trả lời" },
+    ],
+    defaults: {
+      title: "Câu hỏi thường gặp",
+      items: "Bao lâu thì nhận được hàng? | Nội thành 2 giờ, tỉnh khác 2–3 ngày.\nCó được đổi trả không? | Đổi trả trong 7 ngày nếu sản phẩm lỗi.\nThanh toán thế nào? | Tiền mặt khi nhận hàng hoặc chuyển khoản.",
+    },
+  },
+];
+
+/** Component mua thêm, cộng vào báo giá. */
+export const ADDONS: ComponentDef[] = [
   {
     type: "login",
     name: "Đăng nhập khách hàng",
@@ -149,6 +262,8 @@ export const COMPONENTS: ComponentDef[] = [
     defaults: { phone: "0900000000" },
   },
 ];
+
+export const COMPONENTS: ComponentDef[] = [...SECTIONS, ...ADDONS];
 
 export function getComponentDef(type: string): ComponentDef | undefined {
   return COMPONENTS.find((c) => c.type === type);

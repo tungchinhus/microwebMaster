@@ -1,19 +1,17 @@
 "use client";
 
-import { ArrowDown, ArrowLeft, ArrowUp, Check, Eye, ImageIcon, Loader2, Package, Pencil, Plus, Save, Settings2, Trash2, Type, Undo2, X } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowUp, Check, Eye, EyeOff, GripVertical, ImageIcon, Loader2, Package, Pencil, Plus, Save, Settings2, Trash2, Type, Undo2, X } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
-import { TemplateBody } from "@/components/showcase/mini-site";
 import { formatVnd } from "@/config/site";
 import { getBackend } from "@/lib/sites/backend";
-import { COMPONENTS, REGIONS, getComponentDef, type ComponentType, type RegionId } from "@/lib/sites/components";
+import { ADDONS, SECTIONS, REGIONS, getComponentDef, type ComponentDef, type ComponentType, type RegionId } from "@/lib/sites/components";
 import { useSessionUser, useSite } from "@/lib/sites/hooks";
 import { sampleProducts } from "@/lib/sites/products";
-import { addonTotal, newUid, placedTypes, safeImageUrl, type CustomerSite, type PlacedComponent, type SiteHeroText, type SiteProduct } from "@/lib/sites/types";
+import { addonTotal, addons, allTypes, newUid, placedTypes, safeImageUrl, type CustomerSite, type PlacedComponent, type SiteHeroText, type SiteProduct } from "@/lib/sites/types";
 import { DEFAULT_LOOK, applyVariant, getProject, variantsOf, type Project } from "@/lib/showcase/catalog";
 import { CartDrawer, LoginModal, renderBlock } from "./site-blocks";
-import { SiteHero } from "./site-hero";
 import { SiteRuntimeProvider } from "./site-runtime";
 
 const HEADING_FONTS = { sans: "inherit", serif: 'var(--font-serif-vn), Georgia, "Times New Roman", serif', mono: 'ui-monospace, "SFMono-Regular", Menlo, monospace' };
@@ -53,6 +51,9 @@ export function SitePage() {
   const [libraryFor, setLibraryFor] = useState<RegionId | null>(null);
   const [propsFor, setPropsFor] = useState<{ region: RegionId; uid: string } | null>(null);
   const [panel, setPanel] = useState<"products" | "hero" | null>(null);
+  /** Kéo thả để sắp xếp: khối đang kéo và vị trí sẽ thả */
+  const [drag, setDrag] = useState<{ region: RegionId; uid: string } | null>(null);
+  const [dropAt, setDropAt] = useState<{ region: RegionId; index: number } | null>(null);
 
   // Mở link có ?sua=1 khi đã là admin: vào thẳng chế độ chỉnh sửa.
   if (!autoStarted && wantEdit && isAdmin && saved) {
@@ -84,6 +85,7 @@ export function SitePage() {
             ...applyVariant(base, shown.variant),
             name: shown.name || base.name,
             headline: shown.hero?.headline || base.headline,
+            summary: shown.hero?.subtitle || base.summary,
             announcement: shown.hero?.announcement || base.announcement,
           }
         : undefined,
@@ -119,6 +121,17 @@ export function SitePage() {
       [next[i], next[j]] = [next[j], next[i]];
       return next;
     });
+  const moveTo = (region: RegionId, uid: string, index: number) =>
+    updateRegion(region, (list) => {
+      const from = list.findIndex((c) => c.uid === uid);
+      if (from < 0) return list;
+      const next = [...list];
+      const [item] = next.splice(from, 1);
+      next.splice(from < index ? index - 1 : index, 0, item);
+      return next;
+    });
+  const toggleHidden = (region: RegionId, uid: string) =>
+    updateRegion(region, (list) => list.map((c) => (c.uid === uid ? { ...c, hidden: !c.hidden } : c)));
   const remove = (region: RegionId, uid: string) => updateRegion(region, (list) => list.filter((c) => c.uid !== uid));
   const setProps = (region: RegionId, uid: string, props: Record<string, string>) =>
     updateRegion(region, (list) => list.map((c) => (c.uid === uid ? { ...c, props } : c)));
@@ -158,19 +171,73 @@ export function SitePage() {
   /* -------------------------------------------------------------- Hiển thị */
 
   const region = (rid: RegionId, layout: "inline" | "stack" | "floating") => {
-    const list = regions[rid];
+    const list = editing ? regions[rid] : regions[rid].filter((c) => !c.hidden);
+    const canDrag = editing && layout === "stack";
+    const endDrag = () => {
+      setDrag(null);
+      setDropAt(null);
+    };
     const items = list.map((c, i) => {
       const block = renderBlock(c);
       if (!editing) return <div key={c.uid}>{block}</div>;
       const def = getComponentDef(c.type)!;
+      const dropHere = canDrag && drag?.region === rid && dropAt?.region === rid;
       return (
-        <div key={c.uid} className="group/item relative rounded-xl outline-1 outline-transparent outline-offset-2 transition hover:outline-indigo-500">
-          {block}
+        <div
+          key={c.uid}
+          id={`khoi-${c.uid}`}
+          onDragOver={
+            canDrag && drag?.region === rid
+              ? (e) => {
+                  e.preventDefault();
+                  const box = e.currentTarget.getBoundingClientRect();
+                  const index = e.clientY < box.top + box.height / 2 ? i : i + 1;
+                  if (dropAt?.index !== index || dropAt.region !== rid) setDropAt({ region: rid, index });
+                }
+              : undefined
+          }
+          onDrop={
+            canDrag && drag?.region === rid
+              ? (e) => {
+                  e.preventDefault();
+                  if (dropAt) moveTo(rid, drag.uid, dropAt.index);
+                  endDrag();
+                }
+              : undefined
+          }
+          className={`group/item relative rounded-xl outline-1 outline-transparent outline-offset-2 transition hover:outline-indigo-500 ${
+            drag?.uid === c.uid ? "opacity-40" : ""
+          } ${dropHere && dropAt.index === i ? "before:absolute before:inset-x-0 before:-top-8 before:h-1 before:rounded-full before:bg-indigo-500" : ""} ${
+            dropHere && dropAt.index === i + 1 && i === list.length - 1 ? "after:absolute after:inset-x-0 after:-bottom-8 after:h-1 after:rounded-full after:bg-indigo-500" : ""
+          }`}
+        >
+          <div className={c.hidden ? "pointer-events-none opacity-35 grayscale" : ""}>{block}</div>
+          {c.hidden && (
+            <span className="absolute top-3 left-3 z-20 inline-flex items-center gap-1 rounded-full bg-zinc-900/85 px-2.5 py-1 text-[11px] font-semibold text-white">
+              <EyeOff className="size-3.5" /> Đang ẩn, khách không thấy
+            </span>
+          )}
           <div
-            className={`absolute z-30 flex items-center gap-0.5 rounded-full bg-zinc-900 p-1 text-white opacity-0 shadow-lg transition group-focus-within/item:opacity-100 group-hover/item:opacity-100 ${
-              layout === "stack" ? "-top-4 right-3" : "-top-9 right-0"
-            }`}
+            className={`absolute z-30 flex items-center gap-0.5 rounded-full bg-zinc-900 p-1 text-white shadow-lg transition ${
+              layout === "stack" ? "-top-4 right-3 opacity-90 md:opacity-0" : "-top-9 right-0 opacity-0"
+            } group-focus-within/item:opacity-100 group-hover/item:opacity-100`}
           >
+            {canDrag && (
+              <span
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.effectAllowed = "move";
+                  const el = document.getElementById(`khoi-${c.uid}`);
+                  if (el) e.dataTransfer.setDragImage(el, 40, 20);
+                  setDrag({ region: rid, uid: c.uid });
+                }}
+                onDragEnd={endDrag}
+                title="Kéo để đổi vị trí"
+                className="hidden cursor-grab rounded-full p-1.5 hover:bg-white/15 active:cursor-grabbing md:block"
+              >
+                <GripVertical className="size-3.5" />
+              </span>
+            )}
             <span className="px-2 text-[11px] font-medium whitespace-nowrap">{def.name}</span>
             <IconBtn label={layout === "inline" ? "Sang trái" : "Lên"} disabled={i === 0} onClick={() => move(rid, c.uid, -1)}>
               <ArrowUp className={`size-3.5 ${layout === "inline" ? "-rotate-90" : ""}`} />
@@ -178,11 +245,18 @@ export function SitePage() {
             <IconBtn label={layout === "inline" ? "Sang phải" : "Xuống"} disabled={i === list.length - 1} onClick={() => move(rid, c.uid, 1)}>
               <ArrowDown className={`size-3.5 ${layout === "inline" ? "-rotate-90" : ""}`} />
             </IconBtn>
-            {def.fields?.length ? (
+            {c.type === "hero" ? (
+              <IconBtn label="Sửa chữ banner" onClick={() => setPanel("hero")}>
+                <Pencil className="size-3.5" />
+              </IconBtn>
+            ) : def.fields?.length ? (
               <IconBtn label="Sửa nội dung" onClick={() => setPropsFor({ region: rid, uid: c.uid })}>
                 <Pencil className="size-3.5" />
               </IconBtn>
             ) : null}
+            <IconBtn label={c.hidden ? "Hiện lại" : "Ẩn với khách"} onClick={() => toggleHidden(rid, c.uid)}>
+              {c.hidden ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
+            </IconBtn>
             <IconBtn label="Gỡ khỏi trang" onClick={() => remove(rid, c.uid)}>
               <Trash2 className="size-3.5 text-red-300" />
             </IconBtn>
@@ -259,25 +333,7 @@ export function SitePage() {
           </div>
         </header>
 
-        <div className={`relative mx-auto w-full max-w-7xl ${editing ? "rounded-2xl outline-2 outline-offset-[-4px] outline-dashed outline-indigo-400/80" : ""}`}>
-          {editing && (
-            <button
-              onClick={() => setPanel("hero")}
-              className="absolute top-3 left-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-lg hover:bg-indigo-500"
-            >
-              <Type className="size-3.5" /> Sửa chữ banner
-            </button>
-          )}
-          {/* Máy tính: bản dựng của mẫu; điện thoại: banner HTML co giãn cho dễ đọc */}
-          <div className="hidden md:block">
-            <TemplateBody project={project} />
-          </div>
-          <div className="md:hidden">
-            <SiteHero project={project} subtitle={shown.hero?.subtitle} ctaHref={placed.has("products") ? "#san-pham" : "#noi-dung"} />
-          </div>
-        </div>
-
-        <main id="noi-dung" className="mx-auto w-full max-w-7xl flex-1 px-4 py-12">{region("main", "stack")}</main>
+        <main id="noi-dung" className="mx-auto w-full max-w-7xl flex-1 px-4 pt-6 pb-12">{region("main", "stack")}</main>
 
         <footer className="border-t border-[color-mix(in_srgb,var(--fg)_10%,transparent)]">
           <div className="mx-auto max-w-7xl space-y-8 px-4 py-10">
@@ -316,7 +372,7 @@ export function SitePage() {
             }}
           />
         )}
-        {editing && libraryFor && <Library region={libraryFor} placed={placed} onPick={(t) => addComponent(libraryFor, t)} onClose={() => setLibraryFor(null)} />}
+        {editing && libraryFor && <Library region={libraryFor} placed={allTypes(regions)} onPick={(t) => addComponent(libraryFor, t)} onClose={() => setLibraryFor(null)} />}
         {editing && propsFor && editedComponent && (
           <PropsEditor
             component={editedComponent}
@@ -353,7 +409,7 @@ function AdminBar(props: {
 }) {
   const { site, editing, dirty, saving, message } = props;
   const total = addonTotal(site.regions);
-  const count = Object.values(site.regions).flat().length;
+  const count = addons(site.regions).length;
   const btn = "inline-flex h-9 items-center gap-1.5 rounded-full px-3.5 text-sm font-semibold transition disabled:opacity-40";
   return (
     <div className="fixed inset-x-0 top-0 z-[60] flex h-14 items-center gap-3 overflow-x-auto bg-zinc-900 px-3 text-white shadow-lg [font-family:var(--font-sans-vn),sans-serif]">
@@ -363,7 +419,7 @@ function AdminBar(props: {
       <div className="min-w-0 max-w-40 shrink lg:max-w-none">
         <div className="truncate text-sm font-semibold">{site.customer || "Khách hàng"}</div>
         <div className="truncate text-[11px] text-white/60">
-          {count} component · mua thêm {formatVnd(total)}
+          {count} mua thêm · {formatVnd(total)}
         </div>
       </div>
 
@@ -444,44 +500,48 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
 
 function Library({ region, placed, onPick, onClose }: { region: RegionId; placed: Set<ComponentType>; onPick: (t: ComponentType) => void; onClose: () => void }) {
   const info = REGIONS.find((r) => r.id === region)!;
-  const list = COMPONENTS.filter((c) => c.regions.includes(region));
+  const sections = SECTIONS.filter((c) => c.regions.includes(region));
+  const paid = ADDONS.filter((c) => c.regions.includes(region));
+  const others = ADDONS.filter((c) => !c.regions.includes(region));
+  const card = (c: ComponentDef) => {
+    const taken = !!c.unique && placed.has(c.type);
+    const missing = (c.worksBestWith ?? []).filter((t) => !placed.has(t));
+    return (
+      <button
+        key={c.type}
+        disabled={taken}
+        onClick={() => onPick(c.type)}
+        className="flex flex-col gap-1.5 rounded-2xl border border-zinc-200 p-4 text-left transition hover:border-indigo-500 hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-zinc-200 disabled:hover:bg-transparent"
+      >
+        <div className="flex items-start justify-between gap-2">
+          <span className="font-semibold">{c.name}</span>
+          <span className={`shrink-0 text-sm font-semibold ${c.price ? "text-indigo-600" : "text-emerald-700"}`}>{c.price ? `+${formatVnd(c.price)}` : "Có trong mẫu"}</span>
+        </div>
+        <span className="text-sm leading-relaxed text-zinc-600">{c.description}</span>
+        {taken ? (
+          <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700">
+            <Check className="size-3.5" /> Đã có trên trang
+          </span>
+        ) : missing.length ? (
+          <span className="text-xs text-amber-700">Nên thêm cùng: {missing.map((t) => getComponentDef(t)?.name).join(", ")}</span>
+        ) : null}
+      </button>
+    );
+  };
   return (
     <Modal title={`Thêm vào vùng "${info.name}"`} onClose={onClose}>
-      <p className="mb-4 text-sm text-zinc-500">{info.hint}. Giá là phí mua thêm, cộng vào báo giá của khách.</p>
-      <div className="grid gap-3 sm:grid-cols-2">
-        {list.map((c) => {
-          const taken = !!c.unique && placed.has(c.type);
-          const missing = (c.worksBestWith ?? []).filter((t) => !placed.has(t));
-          return (
-            <button
-              key={c.type}
-              disabled={taken}
-              onClick={() => onPick(c.type)}
-              className="flex flex-col gap-1.5 rounded-2xl border border-zinc-200 p-4 text-left transition hover:border-indigo-500 hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-zinc-200 disabled:hover:bg-transparent"
-            >
-              <div className="flex items-start justify-between gap-2">
-                <span className="font-semibold">{c.name}</span>
-                <span className="shrink-0 text-sm font-semibold text-indigo-600">+{formatVnd(c.price)}</span>
-              </div>
-              <span className="text-sm leading-relaxed text-zinc-600">{c.description}</span>
-              {taken ? (
-                <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700">
-                  <Check className="size-3.5" /> Đã có trên trang
-                </span>
-              ) : missing.length ? (
-                <span className="text-xs text-amber-700">Nên thêm cùng: {missing.map((t) => getComponentDef(t)?.name).join(", ")}</span>
-              ) : null}
-            </button>
-          );
-        })}
-      </div>
-      {COMPONENTS.some((c) => !c.regions.includes(region)) && (
+      <p className="mb-4 text-sm text-zinc-500">{info.hint.replace(/\.+$/, "")}. Khối mới thêm nằm cuối vùng, kéo hoặc bấm mũi tên để đổi vị trí.</p>
+      {sections.length > 0 && (
+        <>
+          <h3 className="mb-2 text-sm font-bold text-zinc-700">Khối của mẫu (miễn phí)</h3>
+          <div className="mb-6 grid gap-3 sm:grid-cols-2">{sections.map(card)}</div>
+          <h3 className="mb-2 text-sm font-bold text-zinc-700">Component mua thêm (cộng vào báo giá)</h3>
+        </>
+      )}
+      <div className="grid gap-3 sm:grid-cols-2">{paid.map(card)}</div>
+      {others.length > 0 && (
         <p className="mt-4 text-xs text-zinc-500">
-          Component khác đặt ở vùng khác:{" "}
-          {COMPONENTS.filter((c) => !c.regions.includes(region))
-            .map((c) => `${c.name} (${c.regions.map((r) => REGIONS.find((x) => x.id === r)?.name).join(", ")})`)
-            .join("; ")}
-          .
+          Component khác đặt ở vùng khác: {others.map((c) => `${c.name} (${c.regions.map((r) => REGIONS.find((x) => x.id === r)?.name).join(", ")})`).join("; ")}.
         </p>
       )}
     </Modal>
@@ -507,13 +567,15 @@ function PropsEditor({ component, onSave, onClose }: { component: PlacedComponen
               <textarea
                 value={values[f.key] ?? ""}
                 onChange={(e) => setValues({ ...values, [f.key]: e.target.value })}
-                rows={3}
+                placeholder={f.placeholder}
+                rows={5}
                 className="w-full rounded-xl border border-zinc-300 px-3 py-2.5 outline-none focus:border-indigo-500"
               />
             ) : (
               <input
                 value={values[f.key] ?? ""}
                 onChange={(e) => setValues({ ...values, [f.key]: e.target.value })}
+                placeholder={f.placeholder}
                 className="w-full rounded-xl border border-zinc-300 px-3 py-2.5 outline-none focus:border-indigo-500"
               />
             )}

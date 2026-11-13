@@ -6,10 +6,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { formatVnd } from "@/config/site";
 import { DEMO_ADMIN_EMAIL, FIREBASE_ENABLED, getBackend } from "@/lib/sites/backend";
-import { getComponentDef } from "@/lib/sites/components";
 import { useSessionUser } from "@/lib/sites/hooks";
 import { formatPrice } from "@/lib/sites/products";
-import { addonTotal, emptyRegions, newUid, nowMs, type CustomerSite, type Submission } from "@/lib/sites/types";
+import { templateBlocks, layoutTypes } from "@/lib/sites/layouts";
+import { getComponentDef } from "@/lib/sites/components";
+import { addonTotal, addons, emptyRegions, newUid, nowMs, type CustomerSite, type Submission } from "@/lib/sites/types";
 import { PROJECTS, getCategory, getProject, normalizeVi, variantsOf } from "@/lib/showcase/catalog";
 
 const field =
@@ -168,7 +169,7 @@ function CreateSite({ onCreated }: { onCreated: () => void }) {
     setBusy(true);
     setError("");
     try {
-      await getBackend().saveSite({ id, name, customer, template, variant: variantId, regions: emptyRegions(), createdAt: now, updatedAt: now });
+      await getBackend().saveSite({ id, name, customer, template, variant: variantId, regions: { ...emptyRegions(), main: templateBlocks(project) }, layout: 2, createdAt: now, updatedAt: now });
       onCreated();
       router.push(`/site?id=${id}&sua=1`);
     } catch (err) {
@@ -178,9 +179,9 @@ function CreateSite({ onCreated }: { onCreated: () => void }) {
   };
 
   return (
-    <section className="rounded-[28px] border border-border/60 bg-card p-6 sm:p-8">
+    <section id="tao-web" className="scroll-mt-24 rounded-[28px] border border-border/60 bg-card p-6 sm:p-8">
       <h2 className="mb-1 text-2xl font-bold tracking-tight">Tạo web cho khách</h2>
-      <p className="mb-6 text-muted-foreground">Chọn mẫu và giao diện khách đã ưng, rồi thêm component họ muốn mua thêm ngay trên trang.</p>
+      <p className="mb-6 text-muted-foreground">Chọn mẫu và giao diện khách đã ưng. Web được ráp từ các khối của mẫu, bạn sắp xếp lại và thêm component họ muốn mua.</p>
       <form className="grid gap-4 md:grid-cols-2" onSubmit={submit}>
         <label className="space-y-1.5">
           <span className="text-sm font-medium">Tên khách hàng</span>
@@ -210,6 +211,10 @@ function CreateSite({ onCreated }: { onCreated: () => void }) {
             ))}
           </select>
         </label>
+        <p className="text-sm text-muted-foreground md:col-span-2">
+          Mẫu gồm các khối: <b className="font-medium text-foreground">{layoutTypes(project).map((t) => getComponentDef(t)?.name).join(" · ")}</b>. Mở ra là sắp xếp, ẩn, sửa chữ
+          hoặc thêm khối ngay trên trang.
+        </p>
         {error && <p className="text-sm text-red-500 md:col-span-2">{error}</p>}
         <div className="md:col-span-2">
           <button disabled={busy} className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:brightness-110 disabled:opacity-60">
@@ -228,7 +233,7 @@ const KIND_LABEL: Record<Submission["kind"], string> = { order: "Đơn hàng", b
 function SiteRow({ site, onDeleted }: { site: CustomerSite; onDeleted: () => void }) {
   const project = getProject(site.template);
   const variant = project ? variantsOf(project).find((v) => v.id === site.variant) : undefined;
-  const components = Object.values(site.regions).flat();
+  const components = addons(site.regions);
   const [subs, setSubs] = useState<Submission[] | null>(null);
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -274,7 +279,7 @@ function SiteRow({ site, onDeleted }: { site: CustomerSite; onDeleted: () => voi
             </span>
           </div>
           <div className="flex flex-wrap gap-1.5 pt-1">
-            {components.length === 0 && <span className="text-sm text-muted-foreground">Chưa thêm component nào</span>}
+            {components.length === 0 && <span className="text-sm text-muted-foreground">Chưa mua thêm component nào</span>}
             {components.map((c) => (
               <span key={c.uid} className="rounded-full bg-muted px-2.5 py-0.5 text-xs">
                 {getComponentDef(c.type)?.name}

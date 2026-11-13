@@ -9,6 +9,7 @@
  */
 
 import type { CustomerSite, Submission } from "./types";
+import { withTemplateLayout } from "./layouts";
 import { normalizeHero, normalizeProducts, normalizeRegions } from "./types";
 
 export interface SessionUser {
@@ -50,7 +51,7 @@ const DEMO_ADMIN_PASSWORD = process.env.NEXT_PUBLIC_DEMO_ADMIN_PASSWORD || "admi
 
 function toSite(id: string, raw: Record<string, unknown>): CustomerSite {
   const num = (v: unknown) => (typeof v === "number" ? v : typeof (v as { toMillis?: () => number })?.toMillis === "function" ? (v as { toMillis: () => number }).toMillis() : 0);
-  return {
+  return withTemplateLayout({
     id,
     name: String(raw.name ?? ""),
     customer: String(raw.customer ?? ""),
@@ -62,7 +63,8 @@ function toSite(id: string, raw: Record<string, unknown>): CustomerSite {
     createdAt: num(raw.createdAt),
     updatedAt: num(raw.updatedAt),
     updatedBy: raw.updatedBy ? String(raw.updatedBy) : undefined,
-  };
+    layout: typeof raw.layout === "number" ? raw.layout : undefined,
+  });
 }
 
 /* ------------------------------------------------------------- localStorage */

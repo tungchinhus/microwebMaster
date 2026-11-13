@@ -5,6 +5,7 @@ import { createElement } from "react";
 import { KIND_ICON } from "@/components/showcase/mini-site";
 import { getCategory } from "@/lib/showcase/catalog";
 import { safeImageUrl } from "@/lib/sites/types";
+import { Artwork } from "./site-art";
 import { useSiteRuntime } from "./site-runtime";
 
 /** Các khối dựng nên trang mẫu, vẽ bằng HTML thật nên co giãn theo mọi màn hình. */
@@ -60,12 +61,7 @@ export function HeroSection() {
             </a>
           </div>
         </div>
-        <div
-          className="hidden aspect-[4/3] place-items-center md:grid"
-          style={{ background: `color-mix(in srgb, ${p.heroFg} 10%, transparent)`, borderRadius: "calc(var(--r) * 1.25rem)" }}
-        >
-          <KindIcon className="size-1/3" strokeWidth={1.2} />
-        </div>
+        <Artwork seed={project.slug + "-hero"} size="hero" className="hidden aspect-[4/3] md:block" style={{ borderRadius: "calc(var(--r) * 1.25rem)" }} />
       </div>
     </section>
   );
@@ -98,14 +94,14 @@ export function AboutSection({ props }: Props) {
   const img = safeImageUrl(props.image);
   return (
     <section className="grid items-center gap-8 md:grid-cols-2">
-      <div className="ws-soft grid aspect-[4/3] place-items-center overflow-hidden">
-        {img ? (
-          // eslint-disable-next-line @next/next/no-img-element -- ảnh do admin dán link
+      {img ? (
+        <div className="ws-soft aspect-[4/3] overflow-hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element -- ảnh do admin dán link */}
           <img src={img} alt="" className="size-full object-cover" />
-        ) : (
-          <KindIcon className="ws-accent size-1/4" strokeWidth={1.2} />
-        )}
-      </div>
+        </div>
+      ) : (
+        <Artwork seed={project.slug + "-about"} className="ws-soft aspect-[4/3]" />
+      )}
       <div>
         {props.title && <Title>{props.title}</Title>}
         <p className="ws-muted text-[15px] leading-relaxed whitespace-pre-line sm:text-lg">{props.text || project.description}</p>
@@ -147,7 +143,7 @@ export function GallerySection({ props }: Props) {
               // eslint-disable-next-line @next/next/no-img-element -- ảnh do admin dán link
               <img src={src} alt="" className="size-full object-cover" />
             ) : (
-              <KindIcon className="ws-accent size-1/4 opacity-60" strokeWidth={1.2} />
+              <Artwork seed={`gallery-${i}`} className="size-full" />
             )}
           </div>
         ))}

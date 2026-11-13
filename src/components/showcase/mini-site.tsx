@@ -20,7 +20,7 @@ import { DEFAULT_LOOK, getCategory, type Palette, type PreviewKind, type Project
 
 const HEADING_FONTS = {
   sans: "inherit",
-  serif: 'Georgia, "Times New Roman", serif',
+  serif: 'var(--font-serif-vn), Georgia, "Times New Roman", serif',
   mono: 'ui-monospace, "SFMono-Regular", Menlo, monospace',
 };
 

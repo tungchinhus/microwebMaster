@@ -15,7 +15,7 @@ import { DEFAULT_LOOK, applyVariant, getProject, variantsOf, type Project } from
 import { CartDrawer, LoginModal, renderBlock } from "./site-blocks";
 import { SiteRuntimeProvider } from "./site-runtime";
 
-const HEADING_FONTS = { sans: "inherit", serif: 'Georgia, "Times New Roman", serif', mono: 'ui-monospace, "SFMono-Regular", Menlo, monospace' };
+const HEADING_FONTS = { sans: "inherit", serif: 'var(--font-serif-vn), Georgia, "Times New Roman", serif', mono: 'ui-monospace, "SFMono-Regular", Menlo, monospace' };
 
 function themeVars(project: Project): CSSProperties {
   const p = project.palette;

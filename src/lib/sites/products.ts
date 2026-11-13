@@ -4,6 +4,8 @@ export interface SampleProduct {
   id: string;
   name: string;
   price: number;
+  image?: string;
+  description?: string;
 }
 
 /** Tên mẫu theo lĩnh vực; admin bàn giao xong thì khách tự thay bằng sản phẩm thật. */

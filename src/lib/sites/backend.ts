@@ -9,7 +9,7 @@
  */
 
 import type { CustomerSite, Submission } from "./types";
-import { normalizeRegions } from "./types";
+import { normalizeHero, normalizeProducts, normalizeRegions } from "./types";
 
 export interface SessionUser {
   uid: string;
@@ -57,6 +57,8 @@ function toSite(id: string, raw: Record<string, unknown>): CustomerSite {
     template: String(raw.template ?? ""),
     variant: String(raw.variant ?? ""),
     regions: normalizeRegions(raw.regions),
+    products: normalizeProducts(raw.products),
+    hero: normalizeHero(raw.hero),
     createdAt: num(raw.createdAt),
     updatedAt: num(raw.updatedAt),
     updatedBy: raw.updatedBy ? String(raw.updatedBy) : undefined,

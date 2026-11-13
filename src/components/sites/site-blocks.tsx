@@ -5,7 +5,7 @@ import { useState } from "react";
 import { getBackend } from "@/lib/sites/backend";
 import type { ComponentType } from "@/lib/sites/components";
 import { formatPrice } from "@/lib/sites/products";
-import type { PlacedComponent, Submission } from "@/lib/sites/types";
+import { safeImageUrl, type PlacedComponent, type Submission } from "@/lib/sites/types";
 import { KIND_ICON } from "@/components/showcase/mini-site";
 import { getCategory } from "@/lib/showcase/catalog";
 import { useSiteRuntime } from "./site-runtime";
@@ -192,13 +192,19 @@ export function ProductsSection({ props }: { props: Record<string, string> }) {
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
         {products.map((p, i) => (
           <div key={p.id} className="ws-card flex flex-col gap-2 p-3">
-            <div className="ws-soft grid aspect-square place-items-center" style={i % 2 ? undefined : { background: `color-mix(in srgb, ${palette.accent} 14%, transparent)` }}>
-              <Icon className="ws-accent size-1/3" strokeWidth={1.4} />
-            </div>
+            {safeImageUrl(p.image) ? (
+              // eslint-disable-next-line @next/next/no-img-element -- ảnh do admin dán link, không qua next/image
+              <img src={safeImageUrl(p.image)} alt={p.name} loading="lazy" className="ws-soft aspect-square w-full object-cover" />
+            ) : (
+              <div className="ws-soft grid aspect-square place-items-center" style={i % 2 ? undefined : { background: `color-mix(in srgb, ${palette.accent} 14%, transparent)` }}>
+                <Icon className="ws-accent size-1/3" strokeWidth={1.4} />
+              </div>
+            )}
             <div className="text-sm leading-snug font-medium">{p.name}</div>
+            {p.description && <div className="ws-muted line-clamp-2 text-xs leading-relaxed">{p.description}</div>}
             <div className="ws-accent mt-auto font-bold">{formatPrice(p.price)}</div>
             {hasCart ? (
-              <button onClick={() => addToCart(p)} className="ws-btn !py-2 text-sm">
+              <button onClick={() => addToCart(p)} className="ws-btn !px-3 !py-2 text-xs whitespace-nowrap sm:text-sm">
                 <Plus className="size-4" /> Thêm vào giỏ
               </button>
             ) : (

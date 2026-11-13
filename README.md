@@ -34,7 +34,10 @@ Khi chào hàng: khách chọn mẫu và giao diện, thấy thiếu đăng nh�
 1. Vào `/quan-tri`, đăng nhập admin, điền tên khách, chọn mẫu và giao diện, bấm **Tạo và mở chỉnh sửa**.
 2. Web của khách mở ở `/site?id=<mã web>`. Admin thấy thanh đen trên cùng; bấm **Bật chỉnh sửa** để hiện các vùng: Trên banner, Đầu trang, Nội dung, Chân trang, Nút nổi.
 3. Bấm **+ Thêm component** ở vùng muốn đặt và chọn từ thư viện: Đăng nhập khách hàng, Giỏ hàng, Tìm kiếm, Dải khuyến mãi, Danh sách sản phẩm, Đặt lịch, Form liên hệ, Đánh giá, Đăng ký nhận tin, Nút Zalo. Mỗi component có giá mua thêm; thanh admin cộng tổng. Di chuột vào component để đổi thứ tự, sửa nội dung (tiêu đề, mã giảm giá, số Zalo) hoặc gỡ. Đổi được cả giao diện và tên hiển thị.
-4. Bấm **Lưu**: chỉ web đó được cập nhật, và ai đang mở web đó thấy thay đổi ngay, không cần tải lại.
+4. Trên thanh admin: **Sản phẩm** để nhập sản phẩm, dịch vụ thật (tên, giá, link ảnh, mô tả; chưa nhập thì dùng sản phẩm mẫu), **Chữ banner** để đổi dòng thông báo, tiêu đề lớn và mô tả.
+5. Bấm **Lưu**: chỉ web đó được cập nhật, và ai đang mở web đó thấy thay đổi ngay, không cần tải lại.
+
+Trên điện thoại, banner đầu trang dùng bản HTML co giãn (`site-hero.tsx`) thay cho bản dựng thu nhỏ của mẫu.
 
 Các component chạy thật: giỏ hàng thêm, bớt, đặt hàng COD; đăng nhập và đăng ký bằng email; form đặt lịch, liên hệ, nhận tin gửi về `/quan-tri` (nút **Đơn & yêu cầu** của từng web). Thêm component mới trong `src/lib/sites/components.ts` (khai báo) và `src/components/sites/site-blocks.tsx` (giao diện).
 

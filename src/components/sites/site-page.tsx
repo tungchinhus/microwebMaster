@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDown, ArrowLeft, ArrowUp, Check, Eye, Loader2, Pencil, Plus, Save, Settings2, Trash2, Undo2, X } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowUp, Check, Eye, ImageIcon, Loader2, Package, Pencil, Plus, Save, Settings2, Trash2, Type, Undo2, X } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
@@ -10,9 +10,10 @@ import { getBackend } from "@/lib/sites/backend";
 import { COMPONENTS, REGIONS, getComponentDef, type ComponentType, type RegionId } from "@/lib/sites/components";
 import { useSessionUser, useSite } from "@/lib/sites/hooks";
 import { sampleProducts } from "@/lib/sites/products";
-import { addonTotal, newUid, placedTypes, type CustomerSite, type PlacedComponent } from "@/lib/sites/types";
+import { addonTotal, newUid, placedTypes, safeImageUrl, type CustomerSite, type PlacedComponent, type SiteHeroText, type SiteProduct } from "@/lib/sites/types";
 import { DEFAULT_LOOK, applyVariant, getProject, variantsOf, type Project } from "@/lib/showcase/catalog";
 import { CartDrawer, LoginModal, renderBlock } from "./site-blocks";
+import { SiteHero } from "./site-hero";
 import { SiteRuntimeProvider } from "./site-runtime";
 
 const HEADING_FONTS = { sans: "inherit", serif: 'var(--font-serif-vn), Georgia, "Times New Roman", serif', mono: 'ui-monospace, "SFMono-Regular", Menlo, monospace' };
@@ -34,7 +35,7 @@ function themeVars(project: Project): CSSProperties {
 }
 
 /** Phần so sánh để biết bản nháp đã khác bản đã lưu chưa. */
-const snapshot = (s: CustomerSite) => JSON.stringify({ n: s.name, v: s.variant, r: s.regions });
+const snapshot = (s: CustomerSite) => JSON.stringify({ n: s.name, v: s.variant, r: s.regions, p: s.products ?? [], h: s.hero ?? {} });
 
 export function SitePage() {
   const params = useSearchParams();
@@ -51,6 +52,7 @@ export function SitePage() {
   const [message, setMessage] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
   const [libraryFor, setLibraryFor] = useState<RegionId | null>(null);
   const [propsFor, setPropsFor] = useState<{ region: RegionId; uid: string } | null>(null);
+  const [panel, setPanel] = useState<"products" | "hero" | null>(null);
 
   // Mở link có ?sua=1 khi đã là admin: vào thẳng chế độ chỉnh sửa.
   if (!autoStarted && wantEdit && isAdmin && saved) {
@@ -75,8 +77,20 @@ export function SitePage() {
 
   const shown = editing && draft ? draft : saved;
   const base = shown ? getProject(shown.template) : undefined;
-  const project = useMemo(() => (shown && base ? { ...applyVariant(base, shown.variant), name: shown.name || base.name } : undefined), [shown, base]);
-  const products = useMemo(() => (base ? sampleProducts(base) : []), [base]);
+  const project = useMemo(
+    () =>
+      shown && base
+        ? {
+            ...applyVariant(base, shown.variant),
+            name: shown.name || base.name,
+            headline: shown.hero?.headline || base.headline,
+            announcement: shown.hero?.announcement || base.announcement,
+          }
+        : undefined,
+    [shown, base],
+  );
+  const customProducts = shown?.products;
+  const products = useMemo(() => (customProducts?.length ? customProducts : base ? sampleProducts(base) : []), [customProducts, base]);
   const regions = shown?.regions;
   const placed = useMemo(() => (regions ? placedTypes(regions) : new Set<ComponentType>()), [regions]);
 
@@ -120,6 +134,7 @@ export function SitePage() {
     setDraft(null);
     setLibraryFor(null);
     setPropsFor(null);
+    setPanel(null);
   };
   const discard = () => {
     if (window.confirm("Bỏ các thay đổi chưa lưu và quay về bản đang chạy?")) setDraft(saved);
@@ -214,6 +229,9 @@ export function SitePage() {
             variants={variants.map((v) => ({ id: v.id, name: v.name }))}
             onVariant={(v) => update((s) => ({ ...s, variant: v }))}
             onName={(n) => update((s) => ({ ...s, name: n }))}
+            onProducts={() => setPanel("products")}
+            onHero={() => setPanel("hero")}
+            productCount={shown.products?.length ?? 0}
             onStart={startEditing}
             onStop={stopEditing}
             onDiscard={discard}
@@ -241,11 +259,25 @@ export function SitePage() {
           </div>
         </header>
 
-        <div className="mx-auto w-full max-w-7xl">
-          <TemplateBody project={project} />
+        <div className={`relative mx-auto w-full max-w-7xl ${editing ? "rounded-2xl outline-2 outline-offset-[-4px] outline-dashed outline-indigo-400/80" : ""}`}>
+          {editing && (
+            <button
+              onClick={() => setPanel("hero")}
+              className="absolute top-3 left-3 z-20 inline-flex items-center gap-1.5 rounded-full bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white shadow-lg hover:bg-indigo-500"
+            >
+              <Type className="size-3.5" /> Sửa chữ banner
+            </button>
+          )}
+          {/* Máy tính: bản dựng của mẫu; điện thoại: banner HTML co giãn cho dễ đọc */}
+          <div className="hidden md:block">
+            <TemplateBody project={project} />
+          </div>
+          <div className="md:hidden">
+            <SiteHero project={project} subtitle={shown.hero?.subtitle} ctaHref={placed.has("products") ? "#san-pham" : "#noi-dung"} />
+          </div>
         </div>
 
-        <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-12">{region("main", "stack")}</main>
+        <main id="noi-dung" className="mx-auto w-full max-w-7xl flex-1 px-4 py-12">{region("main", "stack")}</main>
 
         <footer className="border-t border-[color-mix(in_srgb,var(--fg)_10%,transparent)]">
           <div className="mx-auto max-w-7xl space-y-8 px-4 py-10">
@@ -262,6 +294,28 @@ export function SitePage() {
         {placed.has("cart") && <CartDrawer />}
         {placed.has("login") && <LoginModal />}
 
+        {editing && panel === "products" && (
+          <ProductsEditor
+            products={draft?.products ?? []}
+            samples={base ? sampleProducts(base) : []}
+            onClose={() => setPanel(null)}
+            onSave={(list) => {
+              update((s) => ({ ...s, products: list }));
+              setPanel(null);
+            }}
+          />
+        )}
+        {editing && panel === "hero" && base && (
+          <HeroEditor
+            value={draft?.hero ?? {}}
+            defaults={{ headline: base.headline, subtitle: base.summary, announcement: base.announcement }}
+            onClose={() => setPanel(null)}
+            onSave={(hero) => {
+              update((s) => ({ ...s, hero }));
+              setPanel(null);
+            }}
+          />
+        )}
         {editing && libraryFor && <Library region={libraryFor} placed={placed} onPick={(t) => addComponent(libraryFor, t)} onClose={() => setLibraryFor(null)} />}
         {editing && propsFor && editedComponent && (
           <PropsEditor
@@ -289,6 +343,9 @@ function AdminBar(props: {
   variants: { id: string; name: string }[];
   onVariant: (id: string) => void;
   onName: (name: string) => void;
+  onProducts: () => void;
+  onHero: () => void;
+  productCount: number;
   onStart: () => void;
   onStop: () => void;
   onDiscard: () => void;
@@ -318,6 +375,12 @@ function AdminBar(props: {
             className="hidden h-9 w-36 rounded-full bg-white/10 px-3 text-sm outline-none focus:bg-white/15 xl:block"
             aria-label="Tên hiển thị trên web"
           />
+          <button onClick={props.onProducts} className={`${btn} bg-white/10 hover:bg-white/15`}>
+            <Package className="size-4" /> <span className="hidden md:inline">Sản phẩm</span> ({props.productCount})
+          </button>
+          <button onClick={props.onHero} className={`${btn} hidden bg-white/10 hover:bg-white/15 md:inline-flex`}>
+            <Type className="size-4" /> Chữ banner
+          </button>
           <select value={site.variant} onChange={(e) => props.onVariant(e.target.value)} className="h-9 rounded-full bg-white/10 px-3 text-sm outline-none" aria-label="Giao diện">
             {props.variants.map((v) => (
               <option key={v.id} value={v.id} className="text-zinc-900">
@@ -463,6 +526,128 @@ function PropsEditor({ component, onSave, onClose }: { component: PlacedComponen
           <button className="rounded-full bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-500">Áp dụng</button>
         </div>
         <p className="text-xs text-zinc-500">Bấm Lưu trên thanh admin để đưa thay đổi lên web của khách.</p>
+      </form>
+    </Modal>
+  );
+}
+
+const input = "w-full rounded-xl border border-zinc-300 px-3 py-2.5 outline-none focus:border-indigo-500";
+
+function ProductsEditor({
+  products,
+  samples,
+  onSave,
+  onClose,
+}: {
+  products: SiteProduct[];
+  samples: SiteProduct[];
+  onSave: (list: SiteProduct[]) => void;
+  onClose: () => void;
+}) {
+  const [list, setList] = useState<SiteProduct[]>(products.length ? products : []);
+  const set = (i: number, patch: Partial<SiteProduct>) => setList((l) => l.map((p, j) => (j === i ? { ...p, ...patch } : p)));
+  const valid = list.filter((p) => p.name.trim());
+  return (
+    <Modal title="Sản phẩm, dịch vụ của web" onClose={onClose}>
+      <p className="mb-4 text-sm text-zinc-500">
+        Hiện ở khối Danh sách sản phẩm và giỏ hàng. Chưa nhập gì thì web dùng {samples.length} sản phẩm mẫu theo lĩnh vực.
+      </p>
+      <div className="space-y-3">
+        {list.map((p, i) => (
+          <div key={p.id} className="grid gap-2 rounded-2xl border border-zinc-200 p-3 sm:grid-cols-[72px_1fr]">
+            <div className="hidden aspect-square place-items-center overflow-hidden rounded-xl bg-zinc-100 sm:grid">
+              {safeImageUrl(p.image) ? (
+                // eslint-disable-next-line @next/next/no-img-element -- xem trước ảnh admin dán link
+                <img src={safeImageUrl(p.image)} alt="" className="size-full object-cover" />
+              ) : (
+                <ImageIcon className="size-5 text-zinc-400" />
+              )}
+            </div>
+            <div className="grid gap-2 sm:grid-cols-[1fr_140px_auto]">
+              <input value={p.name} onChange={(e) => set(i, { name: e.target.value })} placeholder="Tên sản phẩm" aria-label="Tên sản phẩm" className={input} />
+              <input
+                value={p.price ? String(p.price) : ""}
+                onChange={(e) => set(i, { price: Number(e.target.value.replace(/\D/g, "")) || 0 })}
+                inputMode="numeric"
+                placeholder="Giá (đ)"
+                aria-label="Giá"
+                className={input}
+              />
+              <button onClick={() => setList((l) => l.filter((_, j) => j !== i))} className="rounded-xl px-3 text-red-600 hover:bg-red-50" aria-label="Xoá sản phẩm">
+                <Trash2 className="size-4" />
+              </button>
+              <input value={p.image ?? ""} onChange={(e) => set(i, { image: e.target.value })} placeholder="Link ảnh https://..." aria-label="Link ảnh" className={`${input} sm:col-span-3`} />
+              <input value={p.description ?? ""} onChange={(e) => set(i, { description: e.target.value })} placeholder="Mô tả ngắn (không bắt buộc)" aria-label="Mô tả" className={`${input} sm:col-span-3`} />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <button onClick={() => setList((l) => [...l, { id: newUid(), name: "", price: 0 }])} className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-50">
+          <Plus className="size-4" /> Thêm sản phẩm
+        </button>
+        {!list.length && (
+          <button onClick={() => setList(samples.map((s) => ({ ...s, id: newUid() })))} className="rounded-full px-4 py-2 text-sm font-semibold text-zinc-600 hover:bg-zinc-100">
+            Bắt đầu từ sản phẩm mẫu
+          </button>
+        )}
+      </div>
+      <div className="mt-6 flex items-center justify-end gap-2 border-t border-zinc-200 pt-4">
+        <span className="mr-auto text-xs text-zinc-500">Bấm Lưu trên thanh admin để đưa lên web của khách.</span>
+        <button onClick={onClose} className="rounded-full px-4 py-2 text-sm font-semibold hover:bg-zinc-100">
+          Huỷ
+        </button>
+        <button onClick={() => onSave(valid.map((p) => ({ ...p, name: p.name.trim(), image: p.image?.trim() || undefined, description: p.description?.trim() || undefined })))} className="rounded-full bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-500">
+          Áp dụng ({valid.length})
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
+function HeroEditor({
+  value,
+  defaults,
+  onSave,
+  onClose,
+}: {
+  value: SiteHeroText;
+  defaults: Required<SiteHeroText>;
+  onSave: (v: SiteHeroText) => void;
+  onClose: () => void;
+}) {
+  const [v, setV] = useState<SiteHeroText>(value);
+  const fields: { key: keyof SiteHeroText; label: string; multiline?: boolean }[] = [
+    { key: "announcement", label: "Dòng thông báo trên cùng" },
+    { key: "headline", label: "Tiêu đề lớn" },
+    { key: "subtitle", label: "Mô tả ngắn (hiện trên điện thoại)", multiline: true },
+  ];
+  return (
+    <Modal title="Chữ trên banner" onClose={onClose}>
+      <form
+        className="space-y-4"
+        onSubmit={(e) => {
+          e.preventDefault();
+          onSave({ headline: v.headline?.trim() || undefined, subtitle: v.subtitle?.trim() || undefined, announcement: v.announcement?.trim() || undefined });
+        }}
+      >
+        {fields.map((f) => (
+          <label key={f.key} className="block space-y-1.5">
+            <span className="text-sm font-medium">{f.label}</span>
+            {f.multiline ? (
+              <textarea value={v[f.key] ?? ""} onChange={(e) => setV({ ...v, [f.key]: e.target.value })} placeholder={defaults[f.key]} rows={3} className={input} />
+            ) : (
+              <input value={v[f.key] ?? ""} onChange={(e) => setV({ ...v, [f.key]: e.target.value })} placeholder={defaults[f.key]} className={input} />
+            )}
+          </label>
+        ))}
+        <p className="text-xs text-zinc-500">Để trống thì dùng chữ mặc định của mẫu (chữ mờ trong ô).</p>
+        <div className="flex justify-end gap-2 pt-2">
+          <button type="button" onClick={onClose} className="rounded-full px-4 py-2 text-sm font-semibold hover:bg-zinc-100">
+            Huỷ
+          </button>
+          <button className="rounded-full bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-500">Áp dụng</button>
+        </div>
       </form>
     </Modal>
   );

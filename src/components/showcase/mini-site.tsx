@@ -563,6 +563,24 @@ export function DesktopPreview({ project, className = "" }: { project: Project; 
   );
 }
 
+/**
+ * Phần thân của mẫu (không có thanh đầu trang), co giãn theo chiều rộng khung.
+ * Dùng làm phần giữa của web khách hàng; đầu trang và các component thêm vào được dựng riêng.
+ */
+export function TemplateBody({ project }: { project: Project }) {
+  const p = project.palette;
+  const kind = kindOf(project);
+  const Body = DESKTOP_BODY[kind];
+  const fixedHeight = kind === "ai" || kind === "space3d";
+  return (
+    <div className="@container overflow-hidden" aria-hidden>
+      <div style={{ ...lookVars(project), fontSize: "1cqw", background: p.bg, color: p.fg, lineHeight: 1.3, padding: fixedHeight ? 0 : "1.6em 0 3em", aspectRatio: fixedHeight ? "16 / 8.4" : undefined }}>
+        <Body project={project} />
+      </div>
+    </div>
+  );
+}
+
 function MiniBrowserBar({ palette, name }: { palette: Palette; name: string }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "1em", padding: "1em 2em", borderBottom: `0.1em solid ${fade(palette.fg, 0.08)}` }}>

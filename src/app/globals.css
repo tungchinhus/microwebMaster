@@ -67,3 +67,73 @@ html {
     transform: none;
   }
 }
+
+/* Web của khách hàng (/site): màu, bo góc, font lấy từ biến do SitePage gán theo mẫu và giao diện. */
+.wsite {
+  background: var(--bg);
+  color: var(--fg);
+}
+.wsite .ws-h {
+  font-family: var(--hfont);
+  font-weight: var(--hweight);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+.wsite .ws-card {
+  background: var(--card);
+  border: 1px solid color-mix(in srgb, var(--fg) 10%, transparent);
+  border-radius: calc(var(--r) * 1.25rem);
+}
+.wsite .ws-soft {
+  background: var(--soft);
+  border-radius: calc(var(--r) * 1rem);
+}
+.wsite .ws-btn,
+.wsite .ws-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  border-radius: var(--pill);
+  padding: 0.65rem 1.25rem;
+  transition: filter 0.15s, background 0.15s;
+}
+.wsite .ws-btn {
+  background: var(--accent);
+  color: #fff;
+}
+.wsite .ws-btn:hover {
+  filter: brightness(1.08);
+}
+.wsite .ws-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.wsite .ws-btn-ghost {
+  color: var(--fg);
+  border: 1px solid color-mix(in srgb, var(--fg) 22%, transparent);
+}
+.wsite .ws-btn-ghost:hover {
+  background: var(--soft);
+}
+.wsite .ws-input {
+  width: 100%;
+  background: var(--card);
+  color: var(--fg);
+  border: 1px solid color-mix(in srgb, var(--fg) 18%, transparent);
+  border-radius: calc(var(--r) * 0.75rem);
+  padding: 0.7rem 0.9rem;
+  outline: none;
+}
+.wsite .ws-input:focus,
+.wsite .ws-input:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.wsite .ws-muted {
+  color: color-mix(in srgb, var(--fg) 62%, transparent);
+}
+.wsite .ws-accent {
+  color: var(--accent);
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowDown, ArrowLeft, ArrowUp, Check, Eye, EyeOff, GripVertical, ImageIcon, Loader2, Package, Pencil, Plus, Save, Settings2, Trash2, Type, Undo2, X } from "lucide-react";
+import { TriangleAlert, ArrowDown, ArrowLeft, ArrowUp, Check, Eye, EyeOff, GripVertical, ImageIcon, Loader2, Package, Pencil, Plus, Save, Settings2, Trash2, Type, Undo2, X } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
@@ -333,7 +333,18 @@ export function SitePage() {
           </div>
         </header>
 
-        <main id="noi-dung" className="mx-auto w-full max-w-7xl flex-1 px-4 pt-6 pb-12">{region("main", "stack")}</main>
+        <main id="noi-dung" className="mx-auto w-full max-w-7xl flex-1 px-4 pt-6 pb-12">
+          {editing && (placed.has("cart") || placed.has("search")) && !placed.has("products") && (
+            <p className="mb-8 flex items-start gap-2 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 [font-family:var(--font-sans-vn),sans-serif]">
+              <TriangleAlert className="mt-0.5 size-4 shrink-0" />
+              <span>
+                Trang có {[placed.has("cart") && "Giỏ hàng", placed.has("search") && "Tìm kiếm"].filter(Boolean).join(" và ")} nhưng khối Danh sách sản phẩm đang ẩn hoặc chưa có,
+                khách sẽ không có gì để chọn. Hiện lại khối sản phẩm, hoặc thêm từ nút Thêm component.
+              </span>
+            </p>
+          )}
+          {region("main", "stack")}
+        </main>
 
         <footer className="border-t border-[color-mix(in_srgb,var(--fg)_10%,transparent)]">
           <div className="mx-auto max-w-7xl space-y-8 px-4 py-10">

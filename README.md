@@ -78,7 +78,8 @@ Web Master chạy hoàn toàn trên trình duyệt (Gemini được gọi trực
 
 - **GitHub Pages (tự động):** repo đã có workflow `.github/workflows/deploy-pages.yml`. Vào *Settings → Pages → Source: GitHub Actions* một lần; từ đó mỗi lần push lên `main`, trang được build lại tại `https://<tài-khoản>.github.io/<tên-repo>/`.
 - **Vercel:** [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/tungchinhus/microwebMaster) (không cần biến môi trường).
-- **Hosting tĩnh khác (Firebase Hosting, Netlify...):** `STATIC_EXPORT=1 npm run build`, rồi đưa thư mục `out/` lên. Nếu chạy trong thư mục con, đặt thêm `NEXT_PUBLIC_BASE_PATH=/ten-thu-muc`.
+- **Hosting tĩnh khác (Firebase Hosting, Netlify...):** `STATIC_EXPORT=1 npm run build`, rồi đưa thư mục `out/` lên. Nếu chạy trong thư mục con, đặt thêm `NEXT_PUBLIC_BASE_PATH=/ten-thu-muc`. Build trên Windows có bước `postbuild` (`scripts/fix-export-segments.mjs`) sửa tên file prefetch, nếu thiếu thì trình duyệt nhận 404 khi prefetch link.
+- **Bản đang chạy (https://microwebmaster.web.app):** `firebase.json` và `.firebaserc` trỏ tới site `microwebmaster` của project `demobanhang-ab0da`. Deploy: `STATIC_EXPORT=1 npm run build` rồi `firebase deploy --only hosting`. Project này dùng chung Firestore với web bán hàng demo nên luật nằm ở `firestore.demobanhang.rules` (không phải `firestore.rules`); chỉ deploy luật bằng `firebase deploy --only firestore:rules` khi đã sửa file đó. Lưu ý: luật hiện mở đọc/ghi các collection của web demo tới hết 13/12/2026, sau ngày đó web demo bị chặn ghi.
 
 ## Deploy thẳng lên Firebase của người dùng
 

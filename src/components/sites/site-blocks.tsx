@@ -6,8 +6,7 @@ import { getBackend } from "@/lib/sites/backend";
 import type { ComponentType } from "@/lib/sites/components";
 import { formatPrice } from "@/lib/sites/products";
 import { safeImageUrl, type PlacedComponent, type Submission } from "@/lib/sites/types";
-import { KIND_ICON } from "@/components/showcase/mini-site";
-import { getCategory } from "@/lib/showcase/catalog";
+import { Artwork } from "./site-art";
 import { useSiteRuntime } from "./site-runtime";
 import { AboutSection, CtaSection, FaqSection, FeaturesSection, GallerySection, HeroSection, StatsSection } from "./site-sections";
 
@@ -184,22 +183,22 @@ export function PromoBar({ props }: { props: Record<string, string> }) {
 /* -------------------------------------------------------------- Khối nội dung */
 
 export function ProductsSection({ props }: { props: Record<string, string> }) {
-  const { products, placed, addToCart, project, palette } = useSiteRuntime();
-  const Icon = KIND_ICON[getCategory(project.category)?.kind ?? "shop"];
+  const { products, placed, addToCart } = useSiteRuntime();
   const hasCart = placed.has("cart");
+  // Số cột trên máy tính theo số sản phẩm để hàng cuối không bị trống nhiều.
+  const n = products.length;
+  const lgCols = n <= 4 || (n % 4 === 0 && n % 6 !== 0) ? "lg:grid-cols-4" : n % 5 === 0 ? "lg:grid-cols-5" : "lg:grid-cols-6";
   return (
     <section id="san-pham">
       <SectionTitle>{props.title}</SectionTitle>
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+      <div className={`grid grid-cols-2 gap-4 md:grid-cols-3 ${lgCols}`}>
         {products.map((p, i) => (
           <div key={p.id} className="ws-card flex flex-col gap-2 p-3">
             {safeImageUrl(p.image) ? (
               // eslint-disable-next-line @next/next/no-img-element -- ảnh do admin dán link, không qua next/image
               <img src={safeImageUrl(p.image)} alt={p.name} loading="lazy" className="ws-soft aspect-square w-full object-cover" />
             ) : (
-              <div className="ws-soft grid aspect-square place-items-center" style={i % 2 ? undefined : { background: `color-mix(in srgb, ${palette.accent} 14%, transparent)` }}>
-                <Icon className="ws-accent size-1/3" strokeWidth={1.4} />
-              </div>
+              <Artwork seed={`${p.id}-${i}`} className="ws-soft aspect-square" />
             )}
             <div className="text-sm leading-snug font-medium">{p.name}</div>
             {p.description && <div className="ws-muted line-clamp-2 text-xs leading-relaxed">{p.description}</div>}

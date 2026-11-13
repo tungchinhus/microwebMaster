@@ -50,7 +50,7 @@ function AdminLogin({ signedInAs }: { signedInAs?: string }) {
     }
   };
   return (
-    <div className="mx-auto max-w-md rounded-[28px] border border-border/60 bg-card p-8">
+    <div className="max-w-md rounded-[28px] border border-border/60 bg-card p-8">
       <div className="mb-6 flex items-center gap-3">
         <span className="flex size-11 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
           <ShieldCheck className="size-5" />

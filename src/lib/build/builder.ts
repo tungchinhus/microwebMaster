@@ -33,7 +33,8 @@ let esbuildPromise: Promise<Esbuild> | null = null;
 
 function loadEsbuild(): Promise<Esbuild> {
   esbuildPromise ??= (async () => {
-    const esbuild = await import("esbuild-wasm");
+    // Bản dành cho trình duyệt: bản mặc định gọi child_process và làm hỏng bước build của Next.
+    const esbuild = (await import("esbuild-wasm/esm/browser.js")) as Esbuild;
     await esbuild.initialize({ wasmURL: runtimeUrl("esbuild.wasm"), worker: true });
     return esbuild;
   })();

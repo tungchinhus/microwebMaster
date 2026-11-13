@@ -12,6 +12,18 @@ Web Master là bảng điều khiển cho phép chọn loại website, theme, nh
 - **Màn hình kết quả:** nút **Chạy thử online** (StackBlitz), cây thư mục, code viewer có số dòng và highlight, Copy Code, tải từng file, **Download Code (.zip)**, **Viết lại bằng AI** từng file theo yêu cầu (ví dụ "thêm bộ lọc theo khoảng giá"), hướng dẫn chạy nhanh.
 - **Bảo mật API Key:** trình duyệt gọi thẳng Gemini API bằng `@google/genai`, key không đi qua máy chủ Web Master. Key chỉ được lưu vào localStorage khi bạn tick "Nhớ key".
 
+## Trang giới thiệu và kho mẫu
+
+Trang chủ của Web Master là trang giới thiệu dịch vụ làm web theo mẫu:
+
+- `/` hero có khung xem trước desktop + mobile đổi theo lĩnh vực, lưới lĩnh vực, mẫu tiêu biểu, quy trình, bảng giá, hỏi đáp.
+- `/kho` kho mẫu, lọc theo lĩnh vực (`/kho?loai=giao-duc`).
+- `/mau/<slug>` chi tiết từng mẫu, nút xin báo giá và (với mẫu có sẵn) tự tạo bằng AI.
+- `/bao-gia` form xin báo giá: mở ứng dụng email với nội dung điền sẵn, kèm nút Zalo.
+- `/tao-web` trình tạo web bằng AI (trước đây ở trang chủ).
+
+Sửa tên thương hiệu, email, số Zalo, giá khởi điểm trong `src/config/site.ts`; thêm hoặc sửa mẫu và lĩnh vực trong `src/lib/showcase/catalog.ts`. Bản xem trước mỗi mẫu được vẽ bằng HTML/CSS theo bảng màu của mẫu (`src/components/showcase/mini-site.tsx`), không cần ảnh chụp.
+
 ## Chạy Web Master ở máy local
 
 Yêu cầu: Node.js 20 trở lên.

@@ -27,6 +27,10 @@ Trang chủ của Web Master là trang giới thiệu dịch vụ làm web theo 
 
 Sửa tên thương hiệu, email, số Zalo, giá khởi điểm trong `src/config/site.ts`; thêm hoặc sửa mẫu và lĩnh vực trong `src/lib/showcase/catalog.ts`. Mỗi mẫu có sẵn 3 giao diện để khách chọn (Nguyên bản, Thanh lịch, Đêm), sinh tự động từ bảng màu gốc qua `variantsOf()`; thêm giao diện riêng bằng `extraVariants` của từng mẫu. Bản xem trước mỗi mẫu được vẽ bằng HTML/CSS theo bảng màu của mẫu (`src/components/showcase/mini-site.tsx`), không cần ảnh chụp.
 
+## Mẫu phong cách Việt
+
+`src/lib/showcase/projects-vn.ts` chứa các mẫu mang phong cách Việt (ẩm thực, du lịch và lưu trú, y tế, áo dài, đặc sản OCOP, gốm men lam, studio cưới, luyện thi). Mỗi mẫu có `style` (font, bo góc, hoạ tiết) áp lên các giao diện tự sinh và `samples` (món, phòng, dịch vụ có giá) dùng cho bản xem trước và sản phẩm mẫu của web khách. Hoạ tiết chìm trên banner (sen, trống đồng, đèn lồng, gạch bông, mây cát tường, tre, sóng nước) vẽ bằng SVG trong `src/lib/showcase/motifs.ts`, chọn qua `look.motif`.
+
 ## Web của khách hàng và chế độ chỉnh sửa của admin
 
 Mỗi mẫu trong kho được ráp từ các **khối** (banner, điểm nổi bật, giới thiệu, con số, thư viện ảnh, kêu gọi hành động, hỏi đáp, cùng sản phẩm, đặt lịch... tuỳ lĩnh vực; bố cục từng lĩnh vực ở `src/lib/sites/layouts.ts`). Tạo web cho khách là chép bố cục đó vào vùng Nội dung; ở chế độ sửa admin kéo thả (hoặc bấm mũi tên) để sắp xếp, ẩn với khách, sửa chữ, xoá hoặc chèn lại khối. Khối của mẫu miễn phí, chỉ component mua thêm mới cộng vào báo giá. Web tạo trước đây tự được chuyển sang bố cục khối khi mở. Trang chi tiết mẫu có nút **Admin: tạo web cho khách từ mẫu này** khi đã đăng nhập admin.

@@ -19,6 +19,9 @@ const NAMES: Record<PreviewKind, string[]> = {
   game: ["Gói gợi ý", "Vé chơi lại", "Gói không quảng cáo", "Huy hiệu đặc biệt"],
   ai: ["Gói cá nhân", "Gói nhóm", "Gói doanh nghiệp", "Báo cáo theo yêu cầu"],
   auto: ["Sedan hạng B", "SUV 7 chỗ", "Xe điện đô thị", "Bán tải", "Phụ kiện chính hãng", "Gói bảo dưỡng"],
+  food: ["Món đặc biệt", "Món truyền thống", "Món ăn kèm", "Đồ uống", "Tráng miệng", "Mâm gia đình"],
+  travel: ["Phòng đôi", "Phòng gia đình", "Phòng view đẹp", "Tour trong ngày", "Gói nghỉ dưỡng 2N1Đ", "Dịch vụ đưa đón"],
+  health: ["Khám tổng quát", "Khám chuyên khoa", "Gói khám định kỳ", "Xét nghiệm cơ bản", "Tư vấn từ xa", "Gói gia đình"],
 };
 
 const PRICES: Record<PreviewKind, number[]> = {
@@ -31,9 +34,13 @@ const PRICES: Record<PreviewKind, number[]> = {
   game: [20_000, 10_000, 49_000, 30_000],
   ai: [199_000, 990_000, 4_900_000, 1_500_000],
   auto: [559_000_000, 899_000_000, 690_000_000, 799_000_000, 2_900_000, 1_500_000],
+  food: [85_000, 65_000, 25_000, 30_000, 35_000, 650_000],
+  travel: [750_000, 1_350_000, 1_050_000, 590_000, 2_900_000, 300_000],
+  health: [250_000, 300_000, 1_290_000, 450_000, 150_000, 3_900_000],
 };
 
 export function sampleProducts(project: Project): SampleProduct[] {
+  if (project.samples?.length) return project.samples.map((s, i) => ({ id: `${project.slug}-${i}`, name: s.name, price: s.price }));
   const kind = getCategory(project.category)?.kind ?? "shop";
   const nav = project.nav.length ? project.nav : [project.name];
   return NAMES[kind].map((label, i) => ({

@@ -1,6 +1,13 @@
 import {
   BarChart3,
+  BedDouble,
   Bot,
+  CalendarDays,
+  MapPin,
+  ShieldCheck,
+  Soup,
+  Stethoscope,
+  Users,
   Box,
   Briefcase,
   Car,
@@ -17,6 +24,7 @@ import {
 } from "lucide-react";
 import type { CSSProperties } from "react";
 import { DEFAULT_LOOK, getCategory, type Palette, type PreviewKind, type Project } from "@/lib/showcase/catalog";
+import { motifLayer } from "@/lib/showcase/motifs";
 
 const HEADING_FONTS = {
   sans: "inherit",
@@ -51,7 +59,23 @@ export const KIND_ICON: Record<PreviewKind, LucideIcon> = {
   game: Gamepad2,
   ai: Bot,
   auto: Car,
+  food: Soup,
+  travel: MapPin,
+  health: Stethoscope,
 };
+
+/** Nền banner: màu hero cộng hoạ tiết Việt (nếu giao diện có). */
+function heroBg(project: Project, bg = project.palette.hero, fg = project.palette.heroFg): CSSProperties {
+  return { backgroundColor: bg, ...motifLayer(project.look?.motif, fg, 0.16, "em") };
+}
+
+/** Giá mẫu dạng chữ, ưu tiên sản phẩm riêng của mẫu. */
+function samplePrice(project: Project, i: number): string {
+  const s = project.samples?.[i % (project.samples?.length || 1)];
+  return s ? `${s.price.toLocaleString("vi-VN")}đ` : PRICES[i % PRICES.length];
+}
+
+const HEADER_CTA: Partial<Record<PreviewKind, string>> = { shop: "Giỏ hàng", food: "Đặt bàn", travel: "Đặt phòng", health: "Đặt lịch khám" };
 
 function kindOf(project: Project): PreviewKind {
   return getCategory(project.category)?.kind ?? "shop";
@@ -134,7 +158,7 @@ function DesktopHeader({ project }: { project: Project }) {
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "1em" }}>
           <Search style={{ width: "1.3em", height: "1.3em", opacity: 0.6 }} />
           <Pill bg={p.accent} fg="#fff">
-            {kindOf(project) === "shop" ? "Giỏ hàng" : "Liên hệ"}
+            {HEADER_CTA[kindOf(project)] ?? "Liên hệ"}
           </Pill>
         </div>
       </div>
@@ -184,7 +208,7 @@ function ProductRow({ project, count = 4 }: { project: Project; count?: number }
           <IconBlob icon={Icon} bg={i % 2 ? p.soft : fade(p.accent, 0.14)} fg={p.accent} />
           <div style={bar("80%", fade(p.fg, 0.7))} />
           <div style={bar("50%", fade(p.fg, 0.2))} />
-          <span style={{ fontWeight: 700, color: p.accent, fontSize: "1.05em" }}>{PRICES[i % PRICES.length]}</span>
+          <span style={{ fontWeight: 700, color: p.accent, fontSize: "1.05em" }}>{samplePrice(project, i)}</span>
         </div>
       ))}
     </div>
@@ -197,7 +221,7 @@ function ShopBody({ project }: { project: Project }) {
     <div style={{ padding: "0 4em", display: "flex", flexDirection: "column", gap: "2.6em" }}>
       <div
         style={{
-          background: p.hero,
+          ...heroBg(project),
           borderRadius: "calc(var(--r) * 1.6em)",
           padding: "4em",
           display: "grid",
@@ -235,7 +259,7 @@ function EduBody({ project }: { project: Project }) {
             ))}
           </div>
         </div>
-        <div style={{ position: "relative", background: p.hero, borderRadius: "calc(var(--r) * 1.6em)", aspectRatio: "4/3", display: "grid", placeItems: "center" }}>
+        <div style={{ position: "relative", ...heroBg(project), borderRadius: "calc(var(--r) * 1.6em)", aspectRatio: "4/3", display: "grid", placeItems: "center" }}>
           <div style={{ width: "5em", height: "5em", borderRadius: "var(--pill)", background: p.accent, display: "grid", placeItems: "center" }}>
             <Play style={{ width: "2em", height: "2em", color: "#fff", fill: "#fff" }} />
           </div>
@@ -263,7 +287,7 @@ function ServiceBody({ project }: { project: Project }) {
   const p = project.palette;
   return (
     <div style={{ padding: "0 4em", display: "flex", flexDirection: "column", gap: "2.6em" }}>
-      <div style={{ background: p.hero, borderRadius: "calc(var(--r) * 1.6em)", padding: "4em", display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: "3em", alignItems: "center" }}>
+      <div style={{ ...heroBg(project), borderRadius: "calc(var(--r) * 1.6em)", padding: "4em", display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: "3em", alignItems: "center" }}>
         <HeroCopy project={project} fg={p.heroFg} />
         <div style={{ background: p.card ?? "#fff", color: p.fg, borderRadius: "calc(var(--r) * 1.3em)", padding: "2em", display: "flex", flexDirection: "column", gap: "1em", boxShadow: "0 1em 3em rgba(0,0,0,.12)" }}>
           <div style={{ fontWeight: 800, fontSize: "1.3em" }}>Nhận báo giá nhanh</div>
@@ -531,6 +555,122 @@ function AutoBody({ project }: { project: Project }) {
   );
 }
 
+/** Ẩm thực: banner + thực đơn hai cột có giá, kiểu menu quán Việt. */
+function FoodBody({ project }: { project: Project }) {
+  const p = project.palette;
+  const items = project.samples?.length ? project.samples : Array.from({ length: 6 }, (_, i) => ({ name: `Món ${i + 1}`, price: 50_000 + i * 15_000 }));
+  return (
+    <div style={{ padding: "0 4em", display: "flex", flexDirection: "column", gap: "2.4em" }}>
+      <div style={{ ...heroBg(project), borderRadius: "calc(var(--r) * 1.6em)", padding: "3.6em 4em", display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: "3em", alignItems: "center" }}>
+        <HeroCopy project={project} fg={p.heroFg} light />
+        <div style={{ justifySelf: "center", width: "70%", aspectRatio: "1", borderRadius: "999px", background: fade(p.heroFg, 0.12), border: `0.3em solid ${fade(p.heroFg, 0.35)}`, display: "grid", placeItems: "center" }}>
+          <Soup style={{ width: "42%", height: "42%", color: p.heroFg, strokeWidth: 1.2 }} />
+        </div>
+      </div>
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: "1.2em" }}>
+        <span style={bar("4em", p.accent, "0.15em")} />
+        <span style={{ fontFamily: "var(--hfont)", fontWeight: "var(--hweight)" as CSSProperties["fontWeight"], fontSize: "1.9em" }}>Thực đơn</span>
+        <span style={bar("4em", p.accent, "0.15em")} />
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.1em 4em" }}>
+        {items.slice(0, 6).map((it) => (
+          <div key={it.name} style={{ display: "flex", alignItems: "baseline", gap: "0.6em", fontSize: "1.1em" }}>
+            <span style={{ fontWeight: 600, whiteSpace: "nowrap" }}>{it.name}</span>
+            <span style={{ flex: 1, borderBottom: `0.15em dotted ${fade(p.fg, 0.3)}` }} />
+            <span style={{ fontWeight: 700, color: p.accent }}>{it.price.toLocaleString("vi-VN")}đ</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Du lịch: banner lớn có ô tìm chỗ (điểm đến, ngày, số khách) và thẻ phòng/tour. */
+function TravelBody({ project }: { project: Project }) {
+  const p = project.palette;
+  const items = project.samples ?? [];
+  return (
+    <div style={{ padding: "0 4em", display: "flex", flexDirection: "column", gap: "2.4em" }}>
+      <div style={{ ...heroBg(project), borderRadius: "calc(var(--r) * 1.6em)", padding: "4em 4em 3em", color: p.heroFg, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: "1.6em" }}>
+        <span style={{ fontSize: "0.8em", letterSpacing: "0.18em", fontWeight: 700, textTransform: "uppercase", opacity: 0.7 }}>{getCategory(project.category)?.name}</span>
+        <div style={{ fontSize: "3.4em", lineHeight: 1.1, fontWeight: "var(--hweight)" as CSSProperties["fontWeight"], fontFamily: "var(--hfont)", maxWidth: "13em" }}>{project.headline}</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr 1fr auto", gap: "0.6em", width: "88%", background: p.card ?? "#fff", color: p.fg, borderRadius: "var(--pill)", padding: "0.6em", boxShadow: "0 1em 3em rgba(0,0,0,.15)" }}>
+          {[
+            [MapPin, "Điểm đến"],
+            [CalendarDays, "Ngày nhận – trả"],
+            [Users, "2 người lớn"],
+          ].map(([Icon, label]) => {
+            const I = Icon as LucideIcon;
+            return (
+              <div key={label as string} style={{ display: "flex", alignItems: "center", gap: "0.5em", padding: "0.5em 1em", fontSize: "0.9em", color: fade(p.fg, 0.7) }}>
+                <I style={{ width: "1.2em", height: "1.2em", color: p.accent }} /> {label as string}
+              </div>
+            );
+          })}
+          <Pill bg={p.accent} fg="#fff">
+            Tìm chỗ
+          </Pill>
+        </div>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1.6em" }}>
+        {[0, 1, 2].map((i) => (
+          <div key={i} style={{ background: p.card ?? "#fff", borderRadius: "calc(var(--r) * 1.2em)", overflow: "hidden", border: `0.1em solid ${fade(p.fg, 0.08)}` }}>
+            <div style={{ aspectRatio: "16/9", background: i % 2 ? p.soft : fade(p.accent, 0.16), display: "grid", placeItems: "center" }}>
+              <BedDouble style={{ width: "22%", height: "22%", color: p.accent, strokeWidth: 1.3 }} />
+            </div>
+            <div style={{ padding: "1em 1.2em", display: "flex", flexDirection: "column", gap: "0.4em" }}>
+              <span style={{ fontWeight: 700, fontSize: "1.05em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{items[i]?.name ?? `Phòng ${i + 1}`}</span>
+              <span style={{ display: "flex", alignItems: "center", gap: "0.3em", fontSize: "0.85em", color: p.accent, fontWeight: 700 }}>
+                <Star style={{ width: "1em", height: "1em", fill: "currentColor" }} /> 4.{9 - i} · từ {samplePrice(project, i)}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Y tế: banner tin cậy + thẻ đặt lịch khám, dải dịch vụ có giá. */
+function HealthBody({ project }: { project: Project }) {
+  const p = project.palette;
+  const items = project.samples ?? [];
+  return (
+    <div style={{ padding: "0 4em", display: "flex", flexDirection: "column", gap: "2.4em" }}>
+      <div style={{ ...heroBg(project), borderRadius: "calc(var(--r) * 1.6em)", padding: "3.6em 4em", display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: "3em", alignItems: "center" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.6em" }}>
+          <HeroCopy project={project} fg={p.heroFg} light />
+          <div style={{ display: "flex", gap: "1.2em", color: p.heroFg, fontSize: "0.85em", fontWeight: 600 }}>
+            {["Bác sĩ trên 15 năm", "Vô trùng chuẩn Bộ Y tế"].map((t) => (
+              <span key={t} style={{ display: "inline-flex", alignItems: "center", gap: "0.4em", opacity: 0.85 }}>
+                <ShieldCheck style={{ width: "1.2em", height: "1.2em" }} /> {t}
+              </span>
+            ))}
+          </div>
+        </div>
+        <div style={{ background: p.card ?? "#fff", color: p.fg, borderRadius: "calc(var(--r) * 1.3em)", padding: "2em", display: "flex", flexDirection: "column", gap: "0.9em", boxShadow: "0 1em 3em rgba(0,0,0,.12)" }}>
+          <div style={{ fontWeight: 800, fontSize: "1.3em" }}>Đặt lịch khám</div>
+          {["Họ tên", "Số điện thoại", "Chọn dịch vụ", "Ngày khám"].map((l) => (
+            <div key={l} style={{ border: `0.1em solid ${fade(p.fg, 0.15)}`, borderRadius: "calc(var(--r) * 0.7em)", padding: "0.75em 1em", fontSize: "0.85em", color: fade(p.fg, 0.5) }}>
+              {l}
+            </div>
+          ))}
+          <div style={{ background: p.accent, color: "#fff", borderRadius: "var(--pill)", padding: "0.9em", textAlign: "center", fontWeight: 700, fontSize: "0.95em" }}>Xác nhận lịch hẹn</div>
+        </div>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1.4em" }}>
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} style={{ background: p.card ?? "#fff", borderRadius: "calc(var(--r) * 1.1em)", padding: "1.2em", border: `0.1em solid ${fade(p.fg, 0.08)}`, display: "flex", flexDirection: "column", gap: "0.6em" }}>
+            <IconBlob icon={Stethoscope} bg={p.soft} fg={p.accent} size="3.2em" />
+            <span style={{ fontWeight: 700, fontSize: "0.95em", lineHeight: 1.25 }}>{items[i]?.name ?? `Dịch vụ ${i + 1}`}</span>
+            <span style={{ color: p.accent, fontWeight: 700, fontSize: "0.9em" }}>{samplePrice(project, i)}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const DESKTOP_BODY: Record<PreviewKind, (props: { project: Project }) => React.ReactNode> = {
   shop: ShopBody,
   edu: EduBody,
@@ -541,6 +681,9 @@ const DESKTOP_BODY: Record<PreviewKind, (props: { project: Project }) => React.R
   game: GameBody,
   ai: AiBody,
   auto: AutoBody,
+  food: FoodBody,
+  travel: TravelBody,
+  health: HealthBody,
 };
 
 /** Khung trình duyệt desktop, tỉ lệ 16:10. */
@@ -602,7 +745,7 @@ export function MobilePreview({ project, className = "" }: { project: Project; c
   const kind = kindOf(project);
   const Icon = KIND_ICON[kind];
   const dark = kind === "space3d" || kind === "game";
-  const heroBg = dark ? p.soft : p.hero;
+  const heroBgColor = dark ? p.soft : p.hero;
   const heroFg = dark ? p.fg : p.heroFg;
   return (
     <div className={`@container overflow-hidden ${className}`} aria-hidden>
@@ -618,7 +761,7 @@ export function MobilePreview({ project, className = "" }: { project: Project; c
           </span>
           <Search style={{ width: "1.6em", height: "1.6em" }} />
         </div>
-        <div style={{ margin: "0 1.4em", background: heroBg, color: heroFg, borderRadius: "calc(var(--r) * 1.6em)", padding: "2.4em 1.8em", display: "flex", flexDirection: "column", gap: "1.2em" }}>
+        <div style={{ margin: "0 1.4em", ...heroBg(project, heroBgColor, heroFg), color: heroFg, borderRadius: "calc(var(--r) * 1.6em)", padding: "2.4em 1.8em", display: "flex", flexDirection: "column", gap: "1.2em" }}>
           <span style={{ fontSize: "0.75em", letterSpacing: "0.15em", textTransform: "uppercase", fontWeight: 700, opacity: 0.7 }}>{getCategory(project.category)?.name}</span>
           <div style={{ fontSize: "2.5em", lineHeight: 1.1, fontWeight: "var(--hweight)" as CSSProperties["fontWeight"], letterSpacing: "-0.02em" , fontFamily: "var(--hfont)" }}>{project.headline}</div>
           <Lines color={fade(heroFg, 0.25)} widths={["90%", "65%"]} />
@@ -634,7 +777,7 @@ export function MobilePreview({ project, className = "" }: { project: Project; c
               <IconBlob icon={Icon} bg={i % 2 ? p.soft : fade(p.accent, 0.14)} fg={p.accent} />
               <div style={bar("80%", fade(p.fg, 0.6))} />
               <div style={{ display: "flex", alignItems: "center", gap: "0.3em", fontSize: "0.85em", color: p.accent, fontWeight: 700 }}>
-                {kind === "shop" ? PRICES[i] : (
+                {kind === "shop" || project.samples ? samplePrice(project, i) : (
                   <>
                     <Star style={{ width: "1em", height: "1em", fill: "currentColor" }} /> 4.{9 - i}
                   </>

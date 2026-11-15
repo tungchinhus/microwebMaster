@@ -4,6 +4,7 @@ import { ArrowRight, ChevronDown } from "lucide-react";
 import { createElement } from "react";
 import { KIND_ICON } from "@/components/showcase/mini-site";
 import { getCategory } from "@/lib/showcase/catalog";
+import { motifLayer } from "@/lib/showcase/motifs";
 import { safeImageUrl } from "@/lib/sites/types";
 import { Artwork } from "./site-art";
 import { useSiteRuntime } from "./site-runtime";
@@ -49,7 +50,7 @@ export function HeroSection() {
   const p = project.palette;
   const category = getCategory(project.category);
   return (
-    <section className="overflow-hidden p-6 sm:p-10 lg:p-14" style={{ background: p.hero, color: p.heroFg, borderRadius: "calc(var(--r) * 1.5rem)" }}>
+    <section className="overflow-hidden p-6 sm:p-10 lg:p-14" style={{ backgroundColor: p.hero, ...motifLayer(project.look?.motif, p.heroFg, 0.16), color: p.heroFg, borderRadius: "calc(var(--r) * 1.5rem)" }}>
       <div className="grid items-center gap-8 md:grid-cols-[1.4fr_1fr]">
         <div className="space-y-4 sm:space-y-5">
           <span className="text-xs font-bold tracking-[0.18em] uppercase opacity-70">{category?.name}</span>
@@ -154,12 +155,13 @@ export function GallerySection({ props }: Props) {
 
 export function CtaSection({ props }: Props) {
   const target = useMainTarget();
+  const { project } = useSiteRuntime();
   const link = props.link?.trim();
   const href = link && (/^https?:\/\//.test(link) || link.startsWith("#") || link.startsWith("tel:") || link.startsWith("mailto:")) ? link : target;
   return (
     <section
       className="flex flex-col items-start justify-between gap-6 p-6 text-white sm:p-10 md:flex-row md:items-center"
-      style={{ background: "var(--accent)", borderRadius: "calc(var(--r) * 1.5rem)" }}
+      style={{ backgroundColor: "var(--accent)", ...motifLayer(project.look?.motif, "#ffffff", 0.14), borderRadius: "calc(var(--r) * 1.5rem)" }}
     >
       <div className="max-w-2xl space-y-2">
         <h2 className="ws-h text-2xl sm:text-3xl">{props.title}</h2>

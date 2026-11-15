@@ -1,7 +1,21 @@
 "use client";
 
 import {
+  BedDouble,
   BookOpen,
+  CakeSlice,
+  Coffee,
+  HeartPulse,
+  MapPin,
+  Mountain,
+  Pill,
+  Salad,
+  ShieldPlus,
+  Ship,
+  Smile,
+  Soup,
+  Stethoscope,
+  Tent,
   Bot,
   Box,
   BrainCircuit,
@@ -57,6 +71,9 @@ const ICONS: Record<PreviewKind, LucideIcon[]> = {
   game: [Gamepad2, Trophy, Puzzle, Dices, Star, Zap],
   ai: [Bot, BrainCircuit, Cpu, Sparkles, Zap, Lightbulb],
   auto: [Car, Gauge, Fuel, Wrench, Star, Trophy],
+  food: [Soup, Coffee, Salad, CakeSlice, Leaf, Heart],
+  travel: [Mountain, BedDouble, Tent, Ship, MapPin, Leaf],
+  health: [Stethoscope, HeartPulse, Smile, Pill, ShieldPlus, Leaf],
 };
 
 function hash(seed: string | number): number {

@@ -1,7 +1,9 @@
 import { SITE } from "@/config/site";
+import type { Motif } from "./motifs";
+import { VN_PROJECTS } from "./projects-vn";
 
 /** Kiểu bố cục của bản xem trước thu nhỏ (mỗi lĩnh vực một kiểu). */
-export type PreviewKind = "shop" | "edu" | "service" | "landing" | "space3d" | "jobs" | "game" | "ai" | "auto";
+export type PreviewKind = "shop" | "edu" | "service" | "landing" | "space3d" | "jobs" | "game" | "ai" | "auto" | "food" | "travel" | "health";
 
 export interface Category {
   id: string;
@@ -39,6 +41,8 @@ export interface Look {
   headingWeight: number;
   /** Logo ở giữa, menu bên dưới */
   centeredHeader: boolean;
+  /** Hoạ tiết Việt chìm trên banner */
+  motif?: Motif;
 }
 
 /** Một giao diện (biến thể) của mẫu mà khách có thể chọn. */
@@ -73,6 +77,10 @@ export interface Project {
   extraVariants?: Variant[];
   /** Giao diện đang áp dụng (do applyVariant gán) */
   look?: Look;
+  /** Phong cách riêng của mẫu (font, hoạ tiết...), áp lên các giao diện tự sinh */
+  style?: Partial<Look>;
+  /** Sản phẩm, món, phòng mẫu riêng của mẫu (thay cho tên chung theo lĩnh vực) */
+  samples?: { name: string; price: number }[];
 }
 
 export const CATEGORIES: Category[] = [
@@ -85,6 +93,9 @@ export const CATEGORIES: Category[] = [
   { id: "game", name: "Game", kind: "game", description: "Mini game chơi ngay trên trình duyệt, có bảng xếp hạng." },
   { id: "cong-cu-ai", name: "Công cụ & AI", kind: "ai", description: "Công cụ AI, dashboard số liệu, biểu đồ thời gian thực." },
   { id: "o-to", name: "Ô tô", kind: "auto", description: "Đại lý, showroom: dòng xe, dự toán chi phí, đăng ký lái thử." },
+  { id: "am-thuc", name: "Ẩm thực", kind: "food", description: "Nhà hàng, quán ăn, cà phê: thực đơn có giá, đặt bàn, gọi món mang về." },
+  { id: "du-lich", name: "Du lịch & lưu trú", kind: "travel", description: "Homestay, khách sạn, tour: phòng, lịch trống, đặt chỗ, thanh toán cọc." },
+  { id: "y-te", name: "Y tế & sức khoẻ", kind: "health", description: "Phòng khám, nha khoa, đông y: đặt lịch khám, đội ngũ bác sĩ, bảng giá." },
 ];
 
 export const COMING_SOON: Category = {
@@ -307,6 +318,7 @@ export const PROJECTS: Project[] = [
     announcement: "Ưu đãi 50% lệ phí trước bạ tháng này",
     nav: ["Dòng xe", "Bảng giá", "Lái thử", "Dịch vụ"],
   },
+  ...VN_PROJECTS,
 ];
 
 /* ---------------------------------------------------------------- Tính năng */
@@ -316,7 +328,7 @@ export const FEATURES = [
   { id: "thanh-toan", name: "Thanh toán online" },
   { id: "dang-nhap", name: "Đăng nhập khách hàng" },
   { id: "quan-tri", name: "Trang quản trị" },
-  { id: "dat-lich", name: "Đặt lịch" },
+  { id: "dat-lich", name: "Đặt lịch, đặt bàn, đặt phòng" },
   { id: "form", name: "Form liên hệ / báo giá" },
   { id: "khuyen-mai", name: "Mã giảm giá, khuyến mãi" },
   { id: "blog", name: "Blog, tin tức" },
@@ -343,6 +355,21 @@ const PROJECT_FEATURES: Record<string, FeatureId[]> = {
   "o-chu-vui": ["xep-hang", "dang-nhap"],
   "data-pulse": ["bieu-do", "dang-nhap", "quan-tri"],
   "auto-viet": ["dat-lich", "form", "khuyen-mai", "quan-tri"],
+  "pho-ha-thanh": ["dat-lich", "gio-hang", "khuyen-mai", "form", "quan-tri"],
+  "ca-phe-phin-xua": ["gio-hang", "thanh-toan", "dat-lich", "blog"],
+  "bep-nha-que": ["dat-lich", "form", "khuyen-mai", "quan-tri"],
+  "banh-mi-sai-gon": ["gio-hang", "thanh-toan", "khuyen-mai", "dang-nhap", "quan-tri"],
+  "may-da-lat": ["dat-lich", "thanh-toan", "form", "blog", "quan-tri"],
+  "pho-hoi-travel": ["dat-lich", "thanh-toan", "blog", "form", "quan-tri"],
+  "vinh-xanh": ["dat-lich", "thanh-toan", "form", "khuyen-mai"],
+  "nha-khoa-nu-cuoi": ["dat-lich", "form", "khuyen-mai", "quan-tri"],
+  "phong-kham-an-tam": ["dat-lich", "dang-nhap", "form", "quan-tri"],
+  "dong-y-bao-an": ["dat-lich", "gio-hang", "form", "blog"],
+  "ao-dai-sen": ["gio-hang", "thanh-toan", "dat-lich", "khuyen-mai", "quan-tri"],
+  "dac-san-ba-mien": ["gio-hang", "thanh-toan", "khuyen-mai", "blog", "quan-tri"],
+  "gom-men-lam": ["gio-hang", "form", "quan-tri"],
+  "studio-hong-phuc": ["dat-lich", "form", "khuyen-mai"],
+  "luyen-thi-sao-mai": ["dat-lich", "form", "tien-do", "dang-nhap"],
 };
 
 export function featuresOf(project: Project): FeatureId[] {
@@ -408,15 +435,17 @@ function isDark(hex: string): boolean {
  */
 export function variantsOf(project: Project): Variant[] {
   const base = project.palette;
+  const st = project.style ?? {};
+  const motif = st.motif;
   const darkBase = isDark(base.bg);
   const elegantBg = darkBase ? "#f7f3ec" : mix(base.bg, "#f3ede2", 0.7);
   const variants: Variant[] = [
     {
       id: "nguyen-ban",
       name: "Nguyên bản",
-      description: "Bố cục gốc, chữ đậm, bo góc mềm.",
+      description: project.style ? "Bố cục và phong cách gốc của mẫu." : "Bố cục gốc, chữ đậm, bo góc mềm.",
       palette: { ...base, card: base.card ?? (darkBase ? mix(base.bg, "#ffffff", 0.08) : "#ffffff") },
-      look: DEFAULT_LOOK,
+      look: { ...DEFAULT_LOOK, ...st },
     },
     {
       id: "thanh-lich",
@@ -431,7 +460,7 @@ export function variantsOf(project: Project): Variant[] {
         heroFg: "#1f1b16",
         card: "#fffdf9",
       },
-      look: { radius: 0.15, pillButtons: false, headingFont: "serif", headingWeight: 600, centeredHeader: true },
+      look: { radius: 0.15, pillButtons: false, headingFont: "serif", headingWeight: 600, centeredHeader: true, motif },
     },
     {
       id: "dem",
@@ -446,7 +475,7 @@ export function variantsOf(project: Project): Variant[] {
         heroFg: "#ffffff",
         card: "#16161d",
       },
-      look: { radius: 1.4, pillButtons: true, headingFont: "sans", headingWeight: 800, centeredHeader: false },
+      look: { radius: 1.4, pillButtons: true, headingFont: st.headingFont === "serif" ? "serif" : "sans", headingWeight: 800, centeredHeader: false, motif },
     },
   ];
   return [...variants, ...(project.extraVariants ?? [])];

@@ -5,7 +5,7 @@ import { CompareBar } from "@/components/showcase/compare-ui";
 import { HeroShowcase } from "@/components/showcase/hero-showcase";
 import { SiteFooter, SiteHeader } from "@/components/site-header";
 import { SITE, formatVnd } from "@/config/site";
-import { CATEGORIES, COMING_SOON, PROJECTS } from "@/lib/showcase/catalog";
+import { CATEGORIES, PROJECTS } from "@/lib/showcase/catalog";
 
 const STEPS = [
   { icon: Palette, title: "Chọn mẫu", text: "Xem kho mẫu theo lĩnh vực, chọn bố cục bạn thích. Màu sắc và chữ đều đổi được." },
@@ -87,11 +87,10 @@ export default function HomePage() {
             <h2 className="text-4xl font-bold tracking-tight sm:text-5xl">Chọn theo lĩnh vực</h2>
             <p className="max-w-md text-muted-foreground">Mỗi lĩnh vực có bố cục và tính năng riêng, đã chạy thật trên điện thoại và máy tính.</p>
           </div>
-          <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-5">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-6">
             {CATEGORIES.map((c) => (
               <CategoryCard key={c.id} category={c} />
             ))}
-            <CategoryCard category={COMING_SOON} />
           </div>
         </section>
 

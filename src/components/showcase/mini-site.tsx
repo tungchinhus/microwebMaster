@@ -69,6 +69,11 @@ function heroBg(project: Project, bg = project.palette.hero, fg = project.palett
   return { backgroundColor: bg, ...motifLayer(project.look?.motif, fg, 0.16, "em") };
 }
 
+/** Giá trong bản xem trước: chỉ minh hoạ nên được che bằng CSS (.wm-price trong globals.css). */
+function Price({ children }: { children: React.ReactNode }) {
+  return <span className="wm-price">{children}</span>;
+}
+
 /** Giá mẫu dạng chữ, ưu tiên sản phẩm riêng của mẫu. */
 function samplePrice(project: Project, i: number): string {
   const s = project.samples?.[i % (project.samples?.length || 1)];
@@ -208,7 +213,7 @@ function ProductRow({ project, count = 4 }: { project: Project; count?: number }
           <IconBlob icon={Icon} bg={i % 2 ? p.soft : fade(p.accent, 0.14)} fg={p.accent} />
           <div style={bar("80%", fade(p.fg, 0.7))} />
           <div style={bar("50%", fade(p.fg, 0.2))} />
-          <span style={{ fontWeight: 700, color: p.accent, fontSize: "1.05em" }}>{samplePrice(project, i)}</span>
+          <span style={{ fontWeight: 700, color: p.accent, fontSize: "1.05em" }}><Price>{samplePrice(project, i)}</Price></span>
         </div>
       ))}
     </div>
@@ -577,7 +582,7 @@ function FoodBody({ project }: { project: Project }) {
           <div key={it.name} style={{ display: "flex", alignItems: "baseline", gap: "0.6em", fontSize: "1.1em" }}>
             <span style={{ fontWeight: 600, whiteSpace: "nowrap" }}>{it.name}</span>
             <span style={{ flex: 1, borderBottom: `0.15em dotted ${fade(p.fg, 0.3)}` }} />
-            <span style={{ fontWeight: 700, color: p.accent }}>{it.price.toLocaleString("vi-VN")}đ</span>
+            <span style={{ fontWeight: 700, color: p.accent }}><Price>{it.price.toLocaleString("vi-VN")}đ</Price></span>
           </div>
         ))}
       </div>
@@ -621,7 +626,7 @@ function TravelBody({ project }: { project: Project }) {
             <div style={{ padding: "1em 1.2em", display: "flex", flexDirection: "column", gap: "0.4em" }}>
               <span style={{ fontWeight: 700, fontSize: "1.05em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{items[i]?.name ?? `Phòng ${i + 1}`}</span>
               <span style={{ display: "flex", alignItems: "center", gap: "0.3em", fontSize: "0.85em", color: p.accent, fontWeight: 700 }}>
-                <Star style={{ width: "1em", height: "1em", fill: "currentColor" }} /> 4.{9 - i} · từ {samplePrice(project, i)}
+                <Star style={{ width: "1em", height: "1em", fill: "currentColor" }} /> 4.{9 - i} · <Price>từ {samplePrice(project, i)}</Price>
               </span>
             </div>
           </div>
@@ -663,7 +668,7 @@ function HealthBody({ project }: { project: Project }) {
           <div key={i} style={{ background: p.card ?? "#fff", borderRadius: "calc(var(--r) * 1.1em)", padding: "1.2em", border: `0.1em solid ${fade(p.fg, 0.08)}`, display: "flex", flexDirection: "column", gap: "0.6em" }}>
             <IconBlob icon={Stethoscope} bg={p.soft} fg={p.accent} size="3.2em" />
             <span style={{ fontWeight: 700, fontSize: "0.95em", lineHeight: 1.25 }}>{items[i]?.name ?? `Dịch vụ ${i + 1}`}</span>
-            <span style={{ color: p.accent, fontWeight: 700, fontSize: "0.9em" }}>{samplePrice(project, i)}</span>
+            <span style={{ color: p.accent, fontWeight: 700, fontSize: "0.9em" }}><Price>{samplePrice(project, i)}</Price></span>
           </div>
         ))}
       </div>
@@ -777,7 +782,7 @@ export function MobilePreview({ project, className = "" }: { project: Project; c
               <IconBlob icon={Icon} bg={i % 2 ? p.soft : fade(p.accent, 0.14)} fg={p.accent} />
               <div style={bar("80%", fade(p.fg, 0.6))} />
               <div style={{ display: "flex", alignItems: "center", gap: "0.3em", fontSize: "0.85em", color: p.accent, fontWeight: 700 }}>
-                {kind === "shop" || project.samples ? samplePrice(project, i) : (
+                {kind === "shop" || project.samples ? <Price>{samplePrice(project, i)}</Price> : (
                   <>
                     <Star style={{ width: "1em", height: "1em", fill: "currentColor" }} /> 4.{9 - i}
                   </>

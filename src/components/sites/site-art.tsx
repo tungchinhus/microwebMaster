@@ -1,6 +1,14 @@
 "use client";
 
 import {
+  Building2,
+  Dumbbell,
+  Flame,
+  Gem,
+  KeyRound,
+  Scissors,
+  Timer,
+  Trees,
   BedDouble,
   BookOpen,
   CakeSlice,
@@ -74,6 +82,9 @@ const ICONS: Record<PreviewKind, LucideIcon[]> = {
   food: [Soup, Coffee, Salad, CakeSlice, Leaf, Heart],
   travel: [Mountain, BedDouble, Tent, Ship, MapPin, Leaf],
   health: [Stethoscope, HeartPulse, Smile, Pill, ShieldPlus, Leaf],
+  realestate: [Building2, House, KeyRound, Trees, MapPin, Star],
+  beauty: [Scissors, Sparkles, Flower2, Gem, Heart, Star],
+  fitness: [Dumbbell, HeartPulse, Trophy, Timer, Flame, Zap],
 };
 
 function hash(seed: string | number): number {

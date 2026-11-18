@@ -1,4 +1,10 @@
 import {
+  Bath,
+  Building2,
+  Clock,
+  Dumbbell,
+  Maximize2,
+  Scissors,
   BarChart3,
   BedDouble,
   Bot,
@@ -62,6 +68,9 @@ export const KIND_ICON: Record<PreviewKind, LucideIcon> = {
   food: Soup,
   travel: MapPin,
   health: Stethoscope,
+  realestate: Building2,
+  beauty: Scissors,
+  fitness: Dumbbell,
 };
 
 /** Nền banner: màu hero cộng hoạ tiết Việt (nếu giao diện có). */
@@ -77,10 +86,16 @@ function Price({ children }: { children: React.ReactNode }) {
 /** Giá mẫu dạng chữ, ưu tiên sản phẩm riêng của mẫu. */
 function samplePrice(project: Project, i: number): string {
   const s = project.samples?.[i % (project.samples?.length || 1)];
-  return s ? `${s.price.toLocaleString("vi-VN")}đ` : PRICES[i % PRICES.length];
+  return s ? vnd(s.price) : PRICES[i % PRICES.length];
 }
 
-const HEADER_CTA: Partial<Record<PreviewKind, string>> = { shop: "Giỏ hàng", food: "Đặt bàn", travel: "Đặt phòng", health: "Đặt lịch khám" };
+/** Giá kiểu Việt: tiền tỷ viết gọn "3,85 tỷ", còn lại đủ số và "đ". */
+function vnd(n: number): string {
+  if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toLocaleString("vi-VN", { maximumFractionDigits: 2 })} tỷ`;
+  return `${n.toLocaleString("vi-VN")}đ`;
+}
+
+const HEADER_CTA: Partial<Record<PreviewKind, string>> = { shop: "Giỏ hàng", food: "Đặt bàn", travel: "Đặt phòng", health: "Đặt lịch khám", realestate: "Nhận bảng giá", beauty: "Đặt lịch", fitness: "Tập thử miễn phí" };
 
 function kindOf(project: Project): PreviewKind {
   return getCategory(project.category)?.kind ?? "shop";
@@ -676,6 +691,189 @@ function HealthBody({ project }: { project: Project }) {
   );
 }
 
+/** Ô nhập giả trong form/bộ lọc của bản xem trước. */
+function Field({ label, p, icon: Icon }: { label: string; p: Palette; icon?: LucideIcon }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "0.5em", border: `0.1em solid ${fade(p.fg, 0.15)}`, borderRadius: "calc(var(--r) * 0.7em)", padding: "0.75em 1em", fontSize: "0.85em", color: fade(p.fg, 0.55), whiteSpace: "nowrap", overflow: "hidden" }}>
+      {Icon && <Icon style={{ width: "1.2em", height: "1.2em", color: p.accent, flexShrink: 0 }} />}
+      {label}
+    </div>
+  );
+}
+
+const AREAS = ["68 m²", "92 m²", "145 m²"];
+const ROOMS = [2, 3, 4];
+
+/** Bất động sản: banner dự án + thông số, thanh lọc khu vực/loại/giá, thẻ căn có diện tích và giá. */
+function RealEstateBody({ project }: { project: Project }) {
+  const p = project.palette;
+  const items = project.samples ?? [];
+  return (
+    <div style={{ padding: "0 4em", display: "flex", flexDirection: "column", gap: "2em" }}>
+      <div style={{ ...heroBg(project), borderRadius: "calc(var(--r) * 1.6em)", padding: "3.4em 4em", display: "grid", gridTemplateColumns: "1.35fr 1fr", gap: "3em", alignItems: "center" }}>
+        <HeroCopy project={project} fg={p.heroFg} light />
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.9em", color: p.heroFg }}>
+          {[
+            ["2,4 ha", "Tổng diện tích"],
+            ["1.200", "Căn hộ"],
+            ["42", "Tiện ích nội khu"],
+            ["2027", "Bàn giao"],
+          ].map(([v, l]) => (
+            <div key={l} style={{ border: `0.1em solid ${fade(p.heroFg, 0.25)}`, borderRadius: "calc(var(--r) * 1em)", padding: "1.2em", display: "flex", flexDirection: "column", gap: "0.3em" }}>
+              <span style={{ fontFamily: "var(--hfont)", fontWeight: "var(--hweight)" as CSSProperties["fontWeight"], fontSize: "1.9em", color: p.accent }}>{v}</span>
+              <span style={{ fontSize: "0.8em", opacity: 0.75 }}>{l}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr auto", gap: "0.8em", alignItems: "center", background: p.card ?? "#fff", borderRadius: "calc(var(--r) * 1em)", padding: "0.8em", border: `0.1em solid ${fade(p.fg, 0.08)}`, marginTop: "-0.4em" }}>
+        <Field p={p} icon={MapPin} label="Khu vực, quận huyện" />
+        <Field p={p} icon={Building2} label="Loại hình" />
+        <Field p={p} label="Mức giá" />
+        <Pill bg={p.accent} fg="#fff">
+          Tìm nhà
+        </Pill>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1.6em" }}>
+        {[0, 1, 2].map((i) => (
+          <div key={i} style={{ background: p.card ?? "#fff", borderRadius: "calc(var(--r) * 1.2em)", overflow: "hidden", border: `0.1em solid ${fade(p.fg, 0.08)}` }}>
+            <div style={{ position: "relative", aspectRatio: "16/8", background: i % 2 ? p.soft : fade(p.accent, 0.16), display: "grid", placeItems: "center" }}>
+              <Building2 style={{ width: "20%", height: "34%", color: p.accent, strokeWidth: 1.2 }} />
+              <span style={{ position: "absolute", top: "0.8em", left: "0.8em", background: i === 2 ? p.fg : p.accent, color: i === 2 ? p.bg : "#fff", fontSize: "0.7em", fontWeight: 700, padding: "0.3em 0.8em", borderRadius: "var(--pill)" }}>
+                {i === 2 ? "Sắp hết" : "Đang mở bán"}
+              </span>
+            </div>
+            <div style={{ padding: "1em 1.2em", display: "flex", flexDirection: "column", gap: "0.5em" }}>
+              <span style={{ fontWeight: 700, fontSize: "1em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{items[i]?.name ?? `Căn ${i + 1}`}</span>
+              <div style={{ display: "flex", gap: "1em", fontSize: "0.8em", color: fade(p.fg, 0.65) }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "0.3em" }}><Maximize2 style={{ width: "1.1em", height: "1.1em" }} /> {AREAS[i]}</span>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "0.3em" }}><BedDouble style={{ width: "1.1em", height: "1.1em" }} /> {ROOMS[i]} PN</span>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: "0.3em" }}><Bath style={{ width: "1.1em", height: "1.1em" }} /> {ROOMS[i] - 1 || 1} WC</span>
+              </div>
+              <span style={{ color: p.accent, fontWeight: 800, fontSize: "1.1em" }}><Price>{samplePrice(project, i)}</Price></span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const DURATIONS = ["30 phút", "45 phút", "90 phút", "60 phút", "20 phút", "120 phút"];
+const SLOTS = ["9:00", "9:30", "10:00", "10:30", "14:00", "14:30", "15:00", "19:00"];
+
+/** Làm đẹp: banner + thẻ đặt lịch 4 bước (chi nhánh, dịch vụ, thợ, giờ), bảng giá có thời lượng. */
+function BeautyBody({ project }: { project: Project }) {
+  const p = project.palette;
+  const items = project.samples ?? [];
+  const card = p.card ?? "#fff";
+  return (
+    <div style={{ padding: "0 4em", display: "flex", flexDirection: "column", gap: "2.2em" }}>
+      <div style={{ ...heroBg(project), borderRadius: "calc(var(--r) * 1.6em)", padding: "3.4em 4em", display: "grid", gridTemplateColumns: "1.25fr 1fr", gap: "3em", alignItems: "center" }}>
+        <HeroCopy project={project} fg={p.heroFg} light />
+        <div style={{ background: card, color: p.fg, borderRadius: "calc(var(--r) * 1.3em)", padding: "1.8em", display: "flex", flexDirection: "column", gap: "1em", boxShadow: "0 1em 3em rgba(0,0,0,.15)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75em", fontWeight: 700 }}>
+            {["Chi nhánh", "Dịch vụ", "Thợ", "Giờ"].map((s, i) => (
+              <span key={s} style={{ display: "inline-flex", alignItems: "center", gap: "0.35em", color: i < 3 ? p.accent : fade(p.fg, 0.5) }}>
+                <span style={{ width: "1.7em", height: "1.7em", borderRadius: "999px", display: "grid", placeItems: "center", background: i < 3 ? p.accent : fade(p.fg, 0.1), color: i < 3 ? "#fff" : p.fg }}>{i + 1}</span>
+                {s}
+              </span>
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: "0.7em" }}>
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "0.3em", fontSize: "0.7em", color: fade(p.fg, 0.7) }}>
+                <span style={{ width: "3.6em", height: "3.6em", borderRadius: "999px", background: i === 1 ? p.accent : p.soft, border: i === 1 ? `0.2em solid ${fade(p.accent, 0.35)}` : undefined, display: "grid", placeItems: "center" }}>
+                  <Scissors style={{ width: "40%", height: "40%", color: i === 1 ? "#fff" : p.accent }} />
+                </span>
+                {["Minh", "Lan", "Tú", "Khoa"][i]}
+              </div>
+            ))}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "0.5em" }}>
+            {SLOTS.map((t, i) => (
+              <span key={t} style={{ textAlign: "center", padding: "0.5em 0", fontSize: "0.75em", fontWeight: 700, borderRadius: "calc(var(--r) * 0.6em)", background: i === 2 ? p.accent : i === 5 ? fade(p.fg, 0.05) : "transparent", color: i === 2 ? "#fff" : i === 5 ? fade(p.fg, 0.3) : p.fg, border: `0.1em solid ${i === 2 ? p.accent : fade(p.fg, 0.15)}`, textDecoration: i === 5 ? "line-through" : undefined }}>
+                {t}
+              </span>
+            ))}
+          </div>
+          <div style={{ background: p.accent, color: "#fff", borderRadius: "var(--pill)", padding: "0.85em", textAlign: "center", fontWeight: 700, fontSize: "0.9em" }}>Chốt giờ hẹn</div>
+        </div>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.9em 3em" }}>
+        {items.slice(0, 6).map((it, i) => (
+          <div key={it.name} style={{ display: "flex", alignItems: "center", gap: "0.8em", padding: "0.7em 0", borderBottom: `0.1em solid ${fade(p.fg, 0.1)}` }}>
+            <span style={{ flex: 1, display: "flex", flexDirection: "column", gap: "0.2em", minWidth: 0 }}>
+              <span style={{ fontWeight: 700, fontSize: "1em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{it.name}</span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "0.3em", fontSize: "0.75em", color: fade(p.fg, 0.6) }}>
+                <Clock style={{ width: "1.1em", height: "1.1em" }} /> {DURATIONS[i]}
+              </span>
+            </span>
+            <span style={{ fontWeight: 800, color: p.accent }}><Price>{vnd(it.price)}</Price></span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const DAYS = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
+
+/** Thể thao: banner + lịch lớp/sân theo tuần, cột gói tập có giá. */
+function FitnessBody({ project }: { project: Project }) {
+  const p = project.palette;
+  const classes = project.classes?.length ? project.classes : ["Gym", "Yoga", "HIIT", "Boxing", "Zumba", "Core"];
+  const items = project.samples ?? [];
+  const card = p.card ?? "#fff";
+  return (
+    <div style={{ padding: "0 4em", display: "flex", flexDirection: "column", gap: "2em" }}>
+      <div style={{ ...heroBg(project), borderRadius: "calc(var(--r) * 1.6em)", padding: "3em 4em", display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: "3em", alignItems: "center" }}>
+        <HeroCopy project={project} fg={p.heroFg} light />
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.8em", color: p.heroFg }}>
+          {[
+            ["5:30 – 22:00", "Mở cửa cả tuần"],
+            ["40+", "Buổi lớp mỗi tuần"],
+            ["3 ngày", "Tập thử miễn phí"],
+          ].map(([v, l]) => (
+            <div key={l} style={{ display: "flex", alignItems: "baseline", gap: "0.8em", borderBottom: `0.1em solid ${fade(p.heroFg, 0.2)}`, paddingBottom: "0.6em" }}>
+              <span style={{ fontFamily: "var(--hfont)", fontWeight: "var(--hweight)" as CSSProperties["fontWeight"], fontSize: "1.7em", color: p.accent }}>{v}</span>
+              <span style={{ fontSize: "0.85em", opacity: 0.8 }}>{l}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1.7fr 1fr", gap: "2em" }}>
+        <div style={{ background: card, borderRadius: "calc(var(--r) * 1.2em)", border: `0.1em solid ${fade(p.fg, 0.08)}`, padding: "1.2em", display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "0.5em" }}>
+          {DAYS.map((d, di) => (
+            <div key={d} style={{ display: "flex", flexDirection: "column", gap: "0.45em" }}>
+              <span style={{ textAlign: "center", fontWeight: 800, fontSize: "0.8em", color: di === 2 ? p.accent : fade(p.fg, 0.7) }}>{d}</span>
+              {[0, 1, 2].map((k) => {
+                const c = classes[(di * 2 + k) % classes.length];
+                const hot = (di + k) % 4 === 0;
+                return (
+                  <span key={k} style={{ display: "flex", flexDirection: "column", gap: "0.1em", padding: "0.45em 0.4em", borderRadius: "calc(var(--r) * 0.6em)", background: hot ? p.accent : fade(p.accent, 0.12), color: hot ? "#fff" : p.fg, fontSize: "0.62em", fontWeight: 700, overflow: "hidden" }}>
+                    <span style={{ opacity: 0.75 }}>{["6:00", "18:00", "19:30"][k]}</span>
+                    <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c}</span>
+                  </span>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.7em" }}>
+          {[0, 1, 2].map((i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: "0.8em", background: i === 1 ? p.accent : card, color: i === 1 ? "#fff" : p.fg, borderRadius: "calc(var(--r) * 1em)", padding: "0.9em 1.1em", border: `0.1em solid ${i === 1 ? p.accent : fade(p.fg, 0.08)}` }}>
+              <Dumbbell style={{ width: "1.5em", height: "1.5em", color: i === 1 ? "#fff" : p.accent, flexShrink: 0 }} />
+              <span style={{ flex: 1, fontWeight: 700, fontSize: "0.9em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{items[i]?.name ?? `Gói ${i + 1}`}</span>
+              <span style={{ fontWeight: 800, fontSize: "0.9em" }}><Price>{samplePrice(project, i)}</Price></span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const DESKTOP_BODY: Record<PreviewKind, (props: { project: Project }) => React.ReactNode> = {
   shop: ShopBody,
   edu: EduBody,
@@ -689,6 +887,9 @@ const DESKTOP_BODY: Record<PreviewKind, (props: { project: Project }) => React.R
   food: FoodBody,
   travel: TravelBody,
   health: HealthBody,
+  realestate: RealEstateBody,
+  beauty: BeautyBody,
+  fitness: FitnessBody,
 };
 
 /** Khung trình duyệt desktop, tỉ lệ 16:10. */

@@ -3,13 +3,14 @@
 import { TriangleAlert, ArrowDown, ArrowLeft, ArrowUp, Check, Eye, EyeOff, GripVertical, ImageIcon, Loader2, Package, Pencil, Plus, Save, Settings2, Trash2, Type, Undo2, X } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { formatVnd } from "@/config/site";
 import { getBackend } from "@/lib/sites/backend";
 import { ADDONS, SECTIONS, REGIONS, getComponentDef, type ComponentDef, type ComponentType, type RegionId } from "@/lib/sites/components";
 import { useSessionUser, useSite } from "@/lib/sites/hooks";
+import { allowedNames, bestRegion, checkPlacement, clampIndex, insertAt, isPinned, regionName, reorderable } from "@/lib/sites/placement";
 import { sampleProducts } from "@/lib/sites/products";
-import { addonTotal, addons, allTypes, newUid, placedTypes, safeImageUrl, type CustomerSite, type PlacedComponent, type SiteHeroText, type SiteProduct } from "@/lib/sites/types";
+import { addonTotal, addons, allTypes, newUid, orderRegion, placedTypes, safeImageUrl, type CustomerSite, type PlacedComponent, type SiteHeroText, type SiteProduct } from "@/lib/sites/types";
 import { DEFAULT_LOOK, applyVariant, getProject, variantsOf, type Project } from "@/lib/showcase/catalog";
 import { CartDrawer, LoginModal, renderBlock } from "./site-blocks";
 import { SiteRuntimeProvider } from "./site-runtime";
@@ -54,6 +55,14 @@ export function SitePage() {
   /** Kéo thả để sắp xếp: khối đang kéo và vị trí sẽ thả */
   const [drag, setDrag] = useState<{ region: RegionId; uid: string } | null>(null);
   const [dropAt, setDropAt] = useState<{ region: RegionId; index: number } | null>(null);
+  /** Thông báo ngắn khi khối được tự chuyển sang đúng vùng hoặc bị chặn */
+  const [toast, setToast] = useState<{ kind: "ok" | "warn"; text: string } | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const flash = (kind: "ok" | "warn", text: string) => {
+    setToast({ kind, text });
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 6000);
+  };
 
   // Mở link có ?sua=1 khi đã là admin: vào thẳng chế độ chỉnh sửa.
   if (!autoStarted && wantEdit && isAdmin && saved) {
@@ -106,29 +115,42 @@ export function SitePage() {
   const updateRegion = (region: RegionId, fn: (list: PlacedComponent[]) => PlacedComponent[]) =>
     update((s) => ({ ...s, regions: { ...s.regions, [region]: fn(s.regions[region]) } }));
 
-  const addComponent = (region: RegionId, type: ComponentType) => {
+  /** Thêm khối: luôn đặt vào vùng hợp lệ (vùng đang chọn nếu được, không thì vùng đúng của component). */
+  const addComponent = (preferred: RegionId, type: ComponentType) => {
     const def = getComponentDef(type);
     if (!def) return;
-    updateRegion(region, (list) => [...list, { uid: newUid(), type, props: { ...(def.defaults ?? {}) } }]);
+    const target = bestRegion(regions, type, preferred);
+    if (!target) {
+      const check = checkPlacement(regions, type, preferred);
+      flash("warn", check.ok ? "Không thêm được khối này." : check.reason);
+      return;
+    }
+    const uid = newUid();
+    updateRegion(target, (list) => insertAt(target, list, { uid, type, props: { ...(def.defaults ?? {}) } }));
     setLibraryFor(null);
+    if (target !== preferred) flash("ok", `Đã đặt ${def.name} vào vùng ${regionName(target)}. ${def.why ?? ""}`.trim());
+    setTimeout(() => document.getElementById(`khoi-${uid}`)?.scrollIntoView({ block: "center", behavior: "smooth" }), 80);
   };
   const move = (region: RegionId, uid: string, dir: -1 | 1) =>
     updateRegion(region, (list) => {
       const i = list.findIndex((c) => c.uid === uid);
       const j = i + dir;
-      if (i < 0 || j < 0 || j >= list.length) return list;
+      if (i < 0 || j < 0 || j >= list.length || isPinned(list[i].type) || isPinned(list[j].type)) return list;
       const next = [...list];
       [next[i], next[j]] = [next[j], next[i]];
       return next;
     });
-  const moveTo = (region: RegionId, uid: string, index: number) =>
-    updateRegion(region, (list) => {
-      const from = list.findIndex((c) => c.uid === uid);
-      if (from < 0) return list;
-      const next = [...list];
-      const [item] = next.splice(from, 1);
-      next.splice(from < index ? index - 1 : index, 0, item);
-      return next;
+  /** Kéo thả: đổi chỗ trong vùng hoặc sang vùng khác nếu luật vùng cho phép. */
+  const moveTo = (from: RegionId, uid: string, to: RegionId, index: number) =>
+    update((s) => {
+      const item = s.regions[from].find((c) => c.uid === uid);
+      if (!item) return s;
+      const check = checkPlacement(s.regions, item.type, to, uid);
+      if (!check.ok) return s;
+      const fromIndex = s.regions[from].indexOf(item);
+      const rest = s.regions[from].filter((c) => c.uid !== uid);
+      if (from === to) return { ...s, regions: { ...s.regions, [to]: insertAt(to, rest, item, fromIndex < index ? index - 1 : index) } };
+      return { ...s, regions: { ...s.regions, [from]: orderRegion(from, rest), [to]: insertAt(to, s.regions[to], item, index) } };
     });
   const toggleHidden = (region: RegionId, uid: string) =>
     updateRegion(region, (list) => list.map((c) => (c.uid === uid ? { ...c, hidden: !c.hidden } : c)));
@@ -177,31 +199,46 @@ export function SitePage() {
       setDrag(null);
       setDropAt(null);
     };
+    // Khối đang kéo có được thả vào vùng này không (theo luật vùng của component).
+    const dragType = drag ? regions[drag.region].find((c) => c.uid === drag.uid)?.type : undefined;
+    const dropCheck = editing && drag && dragType ? checkPlacement(regions, dragType, rid, drag.uid) : null;
+    const accepts = canDrag && !!dropCheck?.ok;
+    const setIndex = (index: number) => {
+      const at = dragType ? clampIndex(list, dragType, index) : index;
+      if (dropAt?.index !== at || dropAt.region !== rid) setDropAt({ region: rid, index: at });
+    };
+    const drop = () => {
+      if (drag && dropAt?.region === rid) moveTo(drag.region, drag.uid, rid, dropAt.index);
+      endDrag();
+    };
+    const dropHere = accepts && dropAt?.region === rid;
     const items = list.map((c, i) => {
       const block = renderBlock(c);
       if (!editing) return <div key={c.uid}>{block}</div>;
       const def = getComponentDef(c.type)!;
-      const dropHere = canDrag && drag?.region === rid && dropAt?.region === rid;
+      const pinned = isPinned(c.type);
+      const prevPinned = i > 0 && isPinned(list[i - 1].type);
+      const nextPinned = i < list.length - 1 && isPinned(list[i + 1].type);
       return (
         <div
           key={c.uid}
           id={`khoi-${c.uid}`}
           onDragOver={
-            canDrag && drag?.region === rid
+            accepts
               ? (e) => {
                   e.preventDefault();
+                  e.stopPropagation();
                   const box = e.currentTarget.getBoundingClientRect();
-                  const index = e.clientY < box.top + box.height / 2 ? i : i + 1;
-                  if (dropAt?.index !== index || dropAt.region !== rid) setDropAt({ region: rid, index });
+                  setIndex(e.clientY < box.top + box.height / 2 ? i : i + 1);
                 }
               : undefined
           }
           onDrop={
-            canDrag && drag?.region === rid
+            accepts
               ? (e) => {
                   e.preventDefault();
-                  if (dropAt) moveTo(rid, drag.uid, dropAt.index);
-                  endDrag();
+                  e.stopPropagation();
+                  drop();
                 }
               : undefined
           }
@@ -222,7 +259,7 @@ export function SitePage() {
               layout === "stack" ? "-top-4 right-3 opacity-90 md:opacity-0" : "-top-9 right-0 opacity-0"
             } group-focus-within/item:opacity-100 group-hover/item:opacity-100`}
           >
-            {canDrag && (
+            {canDrag && !pinned && (
               <span
                 draggable
                 onDragStart={(e) => {
@@ -232,19 +269,26 @@ export function SitePage() {
                   setDrag({ region: rid, uid: c.uid });
                 }}
                 onDragEnd={endDrag}
-                title="Kéo để đổi vị trí"
+                title="Kéo để đổi vị trí, hoặc sang vùng khác được phép"
                 className="hidden cursor-grab rounded-full p-1.5 hover:bg-white/15 active:cursor-grabbing md:block"
               >
                 <GripVertical className="size-3.5" />
               </span>
             )}
-            <span className="px-2 text-[11px] font-medium whitespace-nowrap">{def.name}</span>
-            <IconBtn label={layout === "inline" ? "Sang trái" : "Lên"} disabled={i === 0} onClick={() => move(rid, c.uid, -1)}>
-              <ArrowUp className={`size-3.5 ${layout === "inline" ? "-rotate-90" : ""}`} />
-            </IconBtn>
-            <IconBtn label={layout === "inline" ? "Sang phải" : "Xuống"} disabled={i === list.length - 1} onClick={() => move(rid, c.uid, 1)}>
-              <ArrowDown className={`size-3.5 ${layout === "inline" ? "-rotate-90" : ""}`} />
-            </IconBtn>
+            <span className="px-2 text-[11px] font-medium whitespace-nowrap" title={pinned ? def.why : undefined}>
+              {def.name}
+              {pinned && " · luôn đứng đầu"}
+            </span>
+            {reorderable(rid) && !pinned && (
+              <>
+                <IconBtn label={layout === "inline" ? "Sang trái" : "Lên"} disabled={i === 0 || prevPinned} onClick={() => move(rid, c.uid, -1)}>
+                  <ArrowUp className={`size-3.5 ${layout === "inline" ? "-rotate-90" : ""}`} />
+                </IconBtn>
+                <IconBtn label={layout === "inline" ? "Sang phải" : "Xuống"} disabled={i === list.length - 1 || nextPinned} onClick={() => move(rid, c.uid, 1)}>
+                  <ArrowDown className={`size-3.5 ${layout === "inline" ? "-rotate-90" : ""}`} />
+                </IconBtn>
+              </>
+            )}
             {c.type === "hero" ? (
               <IconBtn label="Sửa chữ banner" onClick={() => setPanel("hero")}>
                 <Pencil className="size-3.5" />
@@ -269,9 +313,42 @@ export function SitePage() {
     if (!editing) return list.length ? <div className={flex}>{items}</div> : null;
 
     const info = REGIONS.find((r) => r.id === rid)!;
+    const blocked = !!dropCheck && !dropCheck.ok;
+    const frame = blocked
+      ? "border-red-400 bg-red-500/[0.06]"
+      : accepts
+        ? `border-indigo-500 bg-indigo-500/[0.08] ${dropHere && list.length === 0 ? "ring-4 ring-indigo-400/50" : ""}`
+        : "border-indigo-400/80 bg-indigo-500/[0.04]";
     return (
-      <div className={`relative rounded-2xl border-2 border-dashed border-indigo-400/80 bg-indigo-500/[0.04] ${layout === "inline" ? "px-2 pt-5 pb-2" : "p-4 pt-7"}`}>
-        <span className="absolute -top-3 left-3 rounded-full bg-indigo-600 px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap text-white">{info.name}</span>
+      <div
+        data-vung={rid}
+        onDragOver={
+          accepts
+            ? (e) => {
+                e.preventDefault();
+                setIndex(list.length);
+              }
+            : undefined
+        }
+        onDrop={
+          accepts
+            ? (e) => {
+                e.preventDefault();
+                drop();
+              }
+            : undefined
+        }
+        className={`relative rounded-2xl border-2 border-dashed transition ${frame} ${layout === "inline" ? "px-2 pt-5 pb-2" : "p-4 pt-7"}`}
+      >
+        <span className={`absolute -top-3 left-3 rounded-full px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap text-white ${blocked ? "bg-red-600" : "bg-indigo-600"}`}>
+          {info.name}
+          {accepts && drag?.region !== rid && " · thả vào đây"}
+        </span>
+        {blocked && !dropCheck.ok && (
+          <span role="status" className="absolute top-2 right-3 left-28 z-30 rounded-lg bg-red-600 px-2.5 py-1 text-[11px] leading-snug font-medium text-white shadow">
+            Không đặt ở đây được: {dropCheck.reason}
+          </span>
+        )}
         <div className={flex}>
           {items}
           <button
@@ -383,7 +460,15 @@ export function SitePage() {
             }}
           />
         )}
-        {editing && libraryFor && <Library region={libraryFor} placed={allTypes(regions)} onPick={(t) => addComponent(libraryFor, t)} onClose={() => setLibraryFor(null)} />}
+        {editing && libraryFor && <Library region={libraryFor} regions={regions} onPick={(t) => addComponent(libraryFor, t)} onClose={() => setLibraryFor(null)} />}
+        {editing && toast && (
+          <div
+            role="status"
+            className={`pointer-events-none fixed bottom-5 left-5 z-[60] max-w-sm rounded-2xl px-4 py-3 text-sm leading-relaxed text-white shadow-xl ${toast.kind === "ok" ? "bg-zinc-900" : "bg-red-600"}`}
+          >
+            {toast.text}
+          </div>
+        )}
         {editing && propsFor && editedComponent && (
           <PropsEditor
             component={editedComponent}
@@ -509,18 +594,21 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
   );
 }
 
-function Library({ region, placed, onPick, onClose }: { region: RegionId; placed: Set<ComponentType>; onPick: (t: ComponentType) => void; onClose: () => void }) {
+function Library({ region, regions, onPick, onClose }: { region: RegionId; regions: CustomerSite["regions"]; onPick: (t: ComponentType) => void; onClose: () => void }) {
   const info = REGIONS.find((r) => r.id === region)!;
+  const placed = allTypes(regions);
   const sections = SECTIONS.filter((c) => c.regions.includes(region));
   const paid = ADDONS.filter((c) => c.regions.includes(region));
-  const others = ADDONS.filter((c) => !c.regions.includes(region));
+  const others = [...SECTIONS, ...ADDONS].filter((c) => !c.regions.includes(region));
+  const full = regions[region].length >= info.max;
   const card = (c: ComponentDef) => {
     const taken = !!c.unique && placed.has(c.type);
+    const target = taken ? null : bestRegion(regions, c.type, region);
     const missing = (c.worksBestWith ?? []).filter((t) => !placed.has(t));
     return (
       <button
         key={c.type}
-        disabled={taken}
+        disabled={!target}
         onClick={() => onPick(c.type)}
         className="flex flex-col gap-1.5 rounded-2xl border border-zinc-200 p-4 text-left transition hover:border-indigo-500 hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-zinc-200 disabled:hover:bg-transparent"
       >
@@ -533,6 +621,10 @@ function Library({ region, placed, onPick, onClose }: { region: RegionId; placed
           <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700">
             <Check className="size-3.5" /> Đã có trên trang
           </span>
+        ) : !target ? (
+          <span className="text-xs text-red-700">Các vùng {allowedNames(c.type)} đã đầy</span>
+        ) : target !== region ? (
+          <span className="text-xs font-medium text-indigo-700">Sẽ đặt vào vùng {regionName(target)}</span>
         ) : missing.length ? (
           <span className="text-xs text-amber-700">Nên thêm cùng: {missing.map((t) => getComponentDef(t)?.name).join(", ")}</span>
         ) : null}
@@ -541,7 +633,10 @@ function Library({ region, placed, onPick, onClose }: { region: RegionId; placed
   };
   return (
     <Modal title={`Thêm vào vùng "${info.name}"`} onClose={onClose}>
-      <p className="mb-4 text-sm text-zinc-500">{info.hint.replace(/\.+$/, "")}. Khối mới thêm nằm cuối vùng, kéo hoặc bấm mũi tên để đổi vị trí.</p>
+      <p className="mb-4 text-sm text-zinc-500">
+        {info.hint.replace(/\.+$/, "")}. {reorderable(region) ? "Khối mới thêm nằm cuối vùng, kéo hoặc bấm mũi tên để đổi vị trí." : "Các nút tự xếp theo thứ tự cố định."}
+      </p>
+      {full && <p className="mb-4 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-800">Vùng này đã đủ {info.max} khối. Khối chọn thêm sẽ được đặt vào vùng khác phù hợp.</p>}
       {sections.length > 0 && (
         <>
           <h3 className="mb-2 text-sm font-bold text-zinc-700">Khối của mẫu (miễn phí)</h3>
@@ -549,11 +644,12 @@ function Library({ region, placed, onPick, onClose }: { region: RegionId; placed
           <h3 className="mb-2 text-sm font-bold text-zinc-700">Component mua thêm (cộng vào báo giá)</h3>
         </>
       )}
-      <div className="grid gap-3 sm:grid-cols-2">{paid.map(card)}</div>
+      {paid.length ? <div className="grid gap-3 sm:grid-cols-2">{paid.map(card)}</div> : <p className="text-sm text-zinc-500">Vùng này không có component mua thêm.</p>}
       {others.length > 0 && (
-        <p className="mt-4 text-xs text-zinc-500">
-          Component khác đặt ở vùng khác: {others.map((c) => `${c.name} (${c.regions.map((r) => REGIONS.find((x) => x.id === r)?.name).join(", ")})`).join("; ")}.
-        </p>
+        <details className="mt-6 rounded-2xl border border-zinc-200 p-4">
+          <summary className="cursor-pointer text-sm font-bold text-zinc-700">Component thuộc vùng khác ({others.length}): bấm chọn sẽ tự đặt đúng vùng</summary>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">{others.map(card)}</div>
+        </details>
       )}
     </Modal>
   );

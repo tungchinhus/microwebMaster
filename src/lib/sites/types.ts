@@ -1,4 +1,4 @@
-import { COMPONENTS, getComponentDef, REGIONS, type ComponentType, type RegionId } from "./components";
+import { COMPONENTS, getComponentDef, HEADER_ORDER, REGIONS, type ComponentType, type RegionId } from "./components";
 
 /** Một component đã gắn vào trang, với nội dung riêng do admin nhập. */
 export interface PlacedComponent {
@@ -83,6 +83,37 @@ export function normalizeRegions(raw: unknown): SiteRegions {
         ...(c.hidden ? { hidden: true } : {}),
       }));
   }
+  return fixPlacement(out);
+}
+
+/** Thứ tự đúng của một vùng: banner luôn đầu nội dung, đầu trang theo thứ tự cố định. */
+export function orderRegion(region: RegionId, list: PlacedComponent[]): PlacedComponent[] {
+  if (region === "header") return [...list].sort((a, b) => HEADER_ORDER.indexOf(a.type) - HEADER_ORDER.indexOf(b.type));
+  const pinned = list.filter((c) => getComponentDef(c.type)?.pin === "first");
+  return pinned.length ? [...pinned, ...list.filter((c) => !pinned.includes(c))] : list;
+}
+
+/**
+ * Đưa mọi khối về đúng vùng của nó (dữ liệu cũ, sửa tay hoặc lỗi có thể đặt giỏ hàng xuống nội dung...):
+ * khối sai vùng chuyển về vùng đầu tiên được phép, khối chỉ được có một mà bị trùng thì bỏ bản sau,
+ * vùng quá số khối tối đa thì phần dư chuyển sang vùng khác được phép (hoặc bỏ nếu không còn chỗ).
+ */
+export function fixPlacement(input: SiteRegions): SiteRegions {
+  const out = emptyRegions();
+  const seen = new Set<ComponentType>();
+  const queue: { c: PlacedComponent; from: RegionId }[] = [];
+  for (const r of REGIONS) for (const c of input[r.id] ?? []) queue.push({ c, from: r.id });
+  for (const { c, from } of queue) {
+    const def = getComponentDef(c.type);
+    if (!def) continue;
+    if (def.unique && seen.has(c.type)) continue;
+    const order = def.regions.includes(from) ? [from, ...def.regions.filter((r) => r !== from)] : def.regions;
+    const target = order.find((r) => out[r].length < (REGIONS.find((x) => x.id === r)?.max ?? 99));
+    if (!target) continue;
+    out[target].push(c);
+    seen.add(c.type);
+  }
+  for (const r of REGIONS) out[r.id] = orderRegion(r.id, out[r.id]);
   return out;
 }
 

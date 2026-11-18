@@ -160,3 +160,15 @@ scripts/pack-template.mjs      Đóng gói template thành public/templates/tech
 
 - Code do AI viết có thể còn lỗi nhỏ tùy model. Dùng nút **Viết lại bằng AI** cho file lỗi, hoặc chọn chế độ **Template đã kiểm thử** khi cần bản chắc chắn chạy được.
 - Website tạo bằng AI đặt hàng trực tiếp từ trình duyệt; Security Rules chỉ cho khách tạo đơn của chính mình và chỉ được giảm tồn kho, nhưng không kiểm chứng tổng tiền. Template TechZone xử lý việc này trên server.
+
+## Quy tắc vùng khi sửa web khách
+
+Mỗi component chỉ nằm ở vùng hợp với chức năng của nó (`regions` và lý do `why` trong `src/lib/sites/components.ts`, kiểm tra ở `src/lib/sites/placement.ts`):
+
+- Đầu trang: tìm kiếm, đăng nhập, giỏ hàng. Tự xếp theo thứ tự cố định, giỏ hàng ngoài cùng bên phải.
+- Trên banner: một dải khuyến mãi.
+- Nội dung: banner luôn đứng đầu (khoá vị trí), sau đó các khối của mẫu, sản phẩm, đặt lịch, đánh giá...
+- Chân trang: form liên hệ, đăng ký nhận tin (hai khối này cũng đặt được ở cuối nội dung).
+- Nút nổi: nút Zalo.
+
+Trong trình sửa, thêm component từ vùng sai sẽ tự đặt vào vùng đúng và báo lý do; kéo thả được sang vùng khác nếu luật cho phép, vùng không hợp lệ hiện viền đỏ kèm lý do. Dữ liệu cũ đặt sai vùng được `fixPlacement` sửa khi đọc lên.

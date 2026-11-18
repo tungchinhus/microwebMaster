@@ -1,9 +1,10 @@
 import { SITE } from "@/config/site";
 import type { Motif } from "./motifs";
 import { VN_PROJECTS } from "./projects-vn";
+import { VN_PROJECTS_2 } from "./projects-vn-2";
 
 /** Kiểu bố cục của bản xem trước thu nhỏ (mỗi lĩnh vực một kiểu). */
-export type PreviewKind = "shop" | "edu" | "service" | "landing" | "space3d" | "jobs" | "game" | "ai" | "auto" | "food" | "travel" | "health";
+export type PreviewKind = "shop" | "edu" | "service" | "landing" | "space3d" | "jobs" | "game" | "ai" | "auto" | "food" | "travel" | "health" | "realestate" | "beauty" | "fitness";
 
 export interface Category {
   id: string;
@@ -81,6 +82,8 @@ export interface Project {
   style?: Partial<Look>;
   /** Sản phẩm, món, phòng mẫu riêng của mẫu (thay cho tên chung theo lĩnh vực) */
   samples?: { name: string; price: number }[];
+  /** Lớp tập, khung giờ sân... hiện trên lịch tuần của mẫu thể thao */
+  classes?: string[];
 }
 
 export const CATEGORIES: Category[] = [
@@ -96,6 +99,9 @@ export const CATEGORIES: Category[] = [
   { id: "am-thuc", name: "Ẩm thực", kind: "food", description: "Nhà hàng, quán ăn, cà phê: thực đơn có giá, đặt bàn, gọi món mang về." },
   { id: "du-lich", name: "Du lịch & lưu trú", kind: "travel", description: "Homestay, khách sạn, tour: phòng, lịch trống, đặt chỗ, thanh toán cọc." },
   { id: "y-te", name: "Y tế & sức khoẻ", kind: "health", description: "Phòng khám, nha khoa, đông y: đặt lịch khám, đội ngũ bác sĩ, bảng giá." },
+  { id: "bat-dong-san", name: "Bất động sản", kind: "realestate", description: "Dự án căn hộ, nhà phố, đất nền: bảng giá căn, bộ lọc khu vực, nhận báo giá qua Zalo." },
+  { id: "lam-dep", name: "Làm đẹp", kind: "beauty", description: "Salon tóc, nail, spa: bảng giá theo thời lượng, chọn thợ, chọn giờ trống." },
+  { id: "the-thao", name: "Thể thao & thể hình", kind: "fitness", description: "Phòng gym, yoga, sân pickleball: lịch lớp theo tuần, gói tập, đăng ký tập thử." },
 ];
 
 export const COMING_SOON: Category = {
@@ -319,6 +325,7 @@ export const PROJECTS: Project[] = [
     nav: ["Dòng xe", "Bảng giá", "Lái thử", "Dịch vụ"],
   },
   ...VN_PROJECTS,
+  ...VN_PROJECTS_2,
 ];
 
 /* ---------------------------------------------------------------- Tính năng */
@@ -370,6 +377,22 @@ const PROJECT_FEATURES: Record<string, FeatureId[]> = {
   "gom-men-lam": ["gio-hang", "form", "quan-tri"],
   "studio-hong-phuc": ["dat-lich", "form", "khuyen-mai"],
   "luyen-thi-sao-mai": ["dat-lich", "form", "tien-do", "dang-nhap"],
+  "can-ho-song-xanh": ["form", "3d", "blog", "quan-tri"],
+  "nha-pho-an-cu": ["form", "dang-nhap", "blog", "quan-tri"],
+  "dat-nen-bien-xanh": ["form", "khuyen-mai", "quan-tri"],
+  "toc-nam-bac-ha": ["dat-lich", "dang-nhap", "khuyen-mai", "gio-hang", "quan-tri"],
+  "nail-hoa-cuc": ["dat-lich", "khuyen-mai", "form"],
+  "spa-co-may": ["dat-lich", "khuyen-mai", "gio-hang", "dang-nhap", "quan-tri"],
+  "gym-thep": ["dat-lich", "dang-nhap", "thanh-toan", "tien-do", "quan-tri"],
+  "yoga-sen-hong": ["dat-lich", "dang-nhap", "thanh-toan", "blog"],
+  "pickleball-nang-mai": ["dat-lich", "thanh-toan", "xep-hang", "khuyen-mai", "quan-tri"],
+  "tra-dong-duong": ["gio-hang", "thanh-toan", "khuyen-mai", "dang-nhap", "quan-tri"],
+  "pet-meo-mun": ["gio-hang", "thanh-toan", "dat-lich", "khuyen-mai", "quan-tri"],
+  "hoa-tuoi-ngay-moi": ["gio-hang", "thanh-toan", "khuyen-mai", "form", "quan-tri"],
+  "me-bong-shop": ["gio-hang", "thanh-toan", "dang-nhap", "khuyen-mai", "blog", "quan-tri"],
+  "cuoi-hoi-tron-ven": ["dat-lich", "form", "khuyen-mai", "blog"],
+  "garage-tan-tam": ["dat-lich", "form", "khuyen-mai", "quan-tri"],
+  "mam-non-hoa-sua": ["dat-lich", "form", "dang-nhap", "blog", "tien-do"],
 };
 
 export function featuresOf(project: Project): FeatureId[] {

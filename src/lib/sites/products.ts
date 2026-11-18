@@ -22,6 +22,9 @@ const NAMES: Record<PreviewKind, string[]> = {
   food: ["Món đặc biệt", "Món truyền thống", "Món ăn kèm", "Đồ uống", "Tráng miệng", "Mâm gia đình"],
   travel: ["Phòng đôi", "Phòng gia đình", "Phòng view đẹp", "Tour trong ngày", "Gói nghỉ dưỡng 2N1Đ", "Dịch vụ đưa đón"],
   health: ["Khám tổng quát", "Khám chuyên khoa", "Gói khám định kỳ", "Xét nghiệm cơ bản", "Tư vấn từ xa", "Gói gia đình"],
+  realestate: ["Căn 1 phòng ngủ", "Căn 2 phòng ngủ", "Căn góc 3 phòng ngủ", "Nhà phố", "Đất nền", "Shophouse"],
+  beauty: ["Cắt, gội, sấy", "Chăm sóc da", "Làm móng", "Nhuộm, uốn", "Massage thư giãn", "Gói cô dâu"],
+  fitness: ["Gói tháng", "Gói năm", "PT 1-1", "Lớp nhóm", "Tập thử", "Gói sinh viên"],
 };
 
 const PRICES: Record<PreviewKind, number[]> = {
@@ -37,6 +40,9 @@ const PRICES: Record<PreviewKind, number[]> = {
   food: [85_000, 65_000, 25_000, 30_000, 35_000, 650_000],
   travel: [750_000, 1_350_000, 1_050_000, 590_000, 2_900_000, 300_000],
   health: [250_000, 300_000, 1_290_000, 450_000, 150_000, 3_900_000],
+  realestate: [2_450_000_000, 3_600_000_000, 5_200_000_000, 7_800_000_000, 1_900_000_000, 12_500_000_000],
+  beauty: [120_000, 350_000, 200_000, 450_000, 300_000, 2_500_000],
+  fitness: [590_000, 4_990_000, 4_200_000, 790_000, 0, 450_000],
 };
 
 export function sampleProducts(project: Project): SampleProduct[] {

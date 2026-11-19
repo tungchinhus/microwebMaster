@@ -4,11 +4,12 @@ import { ArrowLeft, Maximize, Minimize, Monitor, Smartphone } from "lucide-react
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { applyVariant, variantsOf, type Project } from "@/lib/showcase/catalog";
-import { DesktopPreview, MobilePreview } from "./mini-site";
+import { variantsOf, type Project } from "@/lib/showcase/catalog";
 import { Swatch } from "./template-detail";
 
 type Device = "desktop" | "mobile";
+
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
 const SMALL = "(max-width: 639px)";
 const subscribeSmall = (cb: () => void) => {
@@ -26,8 +27,7 @@ export function DemoViewer({ project }: { project: Project }) {
   const small = useSyncExternalStore(subscribeSmall, () => window.matchMedia(SMALL).matches, () => false);
   const device: Device = picked ?? (small ? "mobile" : "desktop");
   const [fullscreen, setFullscreen] = useState(false);
-  const shown = applyVariant(project, variantId);
-
+  
   useEffect(() => {
     const onChange = () => setFullscreen(!!document.fullscreenElement);
     document.addEventListener("fullscreenchange", onChange);
@@ -79,7 +79,7 @@ export function DemoViewer({ project }: { project: Project }) {
         </Link>
       </div>
 
-      <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto p-4 sm:p-6">
+      <div className="flex min-h-0 flex-1 items-stretch justify-center p-3 sm:p-5">
         {project.demoUrl ? (
           <iframe
             key={device}
@@ -87,17 +87,16 @@ export function DemoViewer({ project }: { project: Project }) {
             title={`Demo ${project.name}`}
             className={`h-full rounded-xl bg-white shadow-2xl ${device === "mobile" ? "w-[390px] max-w-full" : "w-full"}`}
           />
-        ) : device === "desktop" ? (
-          <div key={variantId} className="w-full max-w-[calc((100dvh-7rem)*1.6)] animate-[fadeUp_.35s_ease] overflow-hidden rounded-xl shadow-2xl shadow-black/50">
-            <DesktopPreview project={shown} />
-          </div>
         ) : (
-          <div
-            key={`${variantId}-m`}
-            className="w-full max-w-[min(390px,calc((100dvh-8rem)*9/17))] animate-[fadeUp_.35s_ease] overflow-hidden rounded-[36px] border-[10px] border-zinc-800 shadow-2xl shadow-black/50"
-          >
-            <MobilePreview project={shown} />
-          </div>
+          // Toàn bộ trang mẫu (đủ các khối) trong khung cuộn được; khung điện thoại rộng 390px để thấy đúng bố cục di động.
+          <iframe
+            key={`${variantId}-${device}`}
+            src={`${BASE}/xem/${project.slug}/?giao-dien=${variantId}`}
+            title={`Toàn bộ mẫu ${project.name}`}
+            className={`h-full animate-[fadeUp_.35s_ease] bg-white shadow-2xl shadow-black/50 ${
+              device === "mobile" ? "w-[390px] max-w-full rounded-[36px] border-[10px] border-zinc-800" : "w-full rounded-xl"
+            }`}
+          />
         )}
       </div>
     </div>

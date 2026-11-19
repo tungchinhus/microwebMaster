@@ -39,7 +39,7 @@ export function TemplateDetail({ project, categoryName }: { project: Project; ca
             <DesktopPreview project={shown} />
             <span className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition group-hover:bg-black/30 group-hover:opacity-100">
               <span className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 font-semibold text-zinc-900 shadow-lg">
-                <Maximize2 className="size-4" /> Xem demo
+                <Maximize2 className="size-4" /> Xem toàn bộ mẫu
               </span>
             </span>
           </Link>
@@ -131,7 +131,7 @@ export function TemplateDetail({ project, categoryName }: { project: Project; ca
               href={`/demo/${project.slug}?giao-dien=${variantId}`}
               className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-foreground/80 py-3 font-semibold transition hover:bg-foreground hover:text-background"
             >
-              <Maximize2 className="size-4" /> Xem demo toàn màn hình
+              <Maximize2 className="size-4" /> Xem toàn bộ mẫu
             </Link>
             {project.aiReady && (
               <Link

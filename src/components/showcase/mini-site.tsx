@@ -85,7 +85,7 @@ function Price({ children }: { children: React.ReactNode }) {
 
 /** Che các số tiền nằm trong câu chữ của bản xem trước (thanh thông báo: "Freeship đơn từ 99.000đ"...). */
 const MONEY = /(\d[\d.,]*\s?(?:đ|k|tỷ|triệu)(?![\p{L}]))/u;
-function maskMoney(text: string): React.ReactNode {
+export function maskMoney(text: string): React.ReactNode {
   const parts = text.split(MONEY);
   if (parts.length === 1) return text;
   return parts.map((t, i) => (i % 2 ? <Price key={i}>{t}</Price> : t));

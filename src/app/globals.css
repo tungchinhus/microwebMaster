@@ -140,7 +140,8 @@ html {
 
 /* Che giá trong bản xem trước của mẫu: giá chỉ để minh hoạ, báo giá thật làm riêng cho từng khách.
    Muốn hiện lại thì xoá khối này. */
-.wm-price {
+.wm-price,
+.wm-mask-prices .ws-price {
   filter: blur(0.3em);
   user-select: none;
 }

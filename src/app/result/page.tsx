@@ -9,7 +9,7 @@ export default function ResultPage() {
   return (
     <>
       <SiteHeader>
-        <Link href="/" className="rounded-lg px-3 py-1.5 text-muted-foreground hover:bg-muted hover:text-foreground">
+        <Link href="/tao-web" className="rounded-full px-3.5 py-2 text-foreground/80 hover:bg-muted hover:text-foreground">
           Cấu hình
         </Link>
       </SiteHeader>

@@ -1,0 +1,54 @@
+import { getCategory, getProject, type PreviewKind, type Project } from "@/lib/showcase/catalog";
+import { getComponentDef, type ComponentType } from "./components";
+import { newUid, type CustomerSite, type PlacedComponent } from "./types";
+
+type Block = [ComponentType, Record<string, string>?];
+
+/**
+ * Bố cục trang của từng lĩnh vực: mẫu trong kho được ráp từ các khối này.
+ * Khối mua thêm có trong bố cục (sản phẩm, đặt lịch...) được tính vào giá mẫu.
+ */
+const LAYOUTS: Record<PreviewKind, Block[]> = {
+  shop: [["hero"], ["features"], ["products"], ["reviews"], ["cta", { title: "Ưu đãi cho đơn đầu tiên", button: "Mua ngay" }]],
+  edu: [["hero"], ["stats", { items: "12.000+ | Học viên\n96% | Hoàn thành khoá\n4,9/5 | Đánh giá\n150+ | Bài học" }], ["features"], ["products", { title: "Khoá học nổi bật" }], ["reviews", { title: "Học viên nói gì" }], ["faq", { items: "Học online hay tại lớp? | Cả hai, bạn chọn khi đăng ký.\nCó học thử không? | Có buổi học thử miễn phí.\nHọc phí trả thế nào? | Chuyển khoản hoặc trả góp 0%." }]],
+  service: [["hero"], ["features"], ["products", { title: "Bảng giá dịch vụ" }], ["booking"], ["reviews"], ["faq", { items: "Có cần đặt lịch trước không? | Nên đặt trước 1 ngày để có giờ đẹp.\nĐổi lịch được không? | Báo trước 2 giờ là đổi được.\nThanh toán thế nào? | Tiền mặt, chuyển khoản hoặc thẻ." }]],
+  landing: [["hero"], ["features"], ["stats"], ["reviews"], ["cta", { title: "Đăng ký nhận ưu đãi ra mắt", button: "Đăng ký ngay" }], ["contact", { title: "Để lại thông tin" }]],
+  space3d: [["hero"], ["gallery", { title: "Không gian thực tế" }], ["features"], ["products", { title: "Các loại căn" }], ["contact", { title: "Đặt lịch xem nhà" }]],
+  jobs: [["hero"], ["stats", { items: "1.200+ | Việc làm\n350+ | Doanh nghiệp\n48 giờ | Phản hồi hồ sơ" }], ["features"], ["cta", { title: "Doanh nghiệp cần tuyển gấp?", text: "Đăng tin trong 5 phút, nhận hồ sơ ngay hôm nay.", button: "Đăng tin tuyển dụng" }], ["contact", { title: "Gửi hồ sơ, đăng tin" }]],
+  game: [["hero"], ["features"], ["stats", { items: "50.000+ | Lượt chơi\nTop 100 | Bảng xếp hạng\nMỗi ngày | Thử thách mới" }], ["cta", { title: "Chơi ngay, không cần cài đặt", button: "Bắt đầu chơi" }]],
+  ai: [["hero"], ["features"], ["stats", { items: "10x | Nhanh hơn\n99,9% | Thời gian hoạt động\n5.000+ | Người dùng" }], ["faq", { items: "Dữ liệu có an toàn không? | Dữ liệu được mã hoá và không dùng để huấn luyện.\nCó dùng thử không? | Có 14 ngày dùng thử miễn phí.\nHuỷ gói thế nào? | Huỷ bất cứ lúc nào trong phần cài đặt." }], ["cta", { title: "Dùng thử 14 ngày miễn phí", button: "Dùng thử" }]],
+  auto: [["hero"], ["gallery", { title: "Showroom" }], ["products", { title: "Dòng xe" }], ["booking", { title: "Đăng ký lái thử" }], ["contact", { title: "Nhận báo giá lăn bánh" }]],
+  food: [["hero"], ["features", { title: "Vì sao thực khách quay lại" }], ["products", { title: "Thực đơn" }], ["gallery", { title: "Không gian quán" }], ["booking", { title: "Đặt bàn" }], ["reviews", { title: "Thực khách nói gì" }]],
+  travel: [["hero"], ["products", { title: "Phòng & trải nghiệm" }], ["features", { title: "Điều bạn sẽ thích" }], ["gallery", { title: "Khoảnh khắc" }], ["booking", { title: "Đặt chỗ" }], ["faq", { items: "Nhận và trả phòng lúc mấy giờ? | Nhận phòng 14:00, trả phòng 12:00.\nĐặt cọc thế nào? | Cọc 30% qua chuyển khoản, phần còn lại trả khi nhận phòng.\nHuỷ phòng có mất cọc không? | Huỷ trước 3 ngày được hoàn cọc 100%." }]],
+  health: [["hero"], ["stats", { items: "15+ | Năm kinh nghiệm\n20.000+ | Lượt khám mỗi năm\n4,9/5 | Đánh giá\nCả tuần | Mở cửa" }], ["features", { title: "Vì sao chọn chúng tôi" }], ["products", { title: "Bảng giá dịch vụ" }], ["booking", { title: "Đặt lịch khám" }], ["faq", { items: "Có cần đặt lịch trước không? | Nên đặt trước để không phải chờ, khách vãng lai vẫn được tiếp nhận.\nCó áp dụng bảo hiểm không? | Có, chấp nhận bảo hiểm y tế và bảo hiểm sức khoẻ tư nhân.\nBao lâu có kết quả xét nghiệm? | Thường trong ngày, gửi qua Zalo." }]],
+  realestate: [["hero"], ["stats", { items: "2,4 ha | Tổng diện tích\n1.200 | Căn hộ\n42 | Tiện ích nội khu\n2027 | Bàn giao" }], ["gallery", { title: "Phối cảnh và nhà mẫu" }], ["products", { title: "Bảng giá" }], ["features", { title: "Tiện ích nổi bật" }], ["faq", { items: "Pháp lý dự án thế nào? | Đã có giấy phép xây dựng, sổ hồng lâu dài cho người Việt.\nThanh toán ra sao? | Thanh toán theo tiến độ, ngân hàng hỗ trợ vay đến 70%.\nKhi nào bàn giao? | Dự kiến quý 4/2027, bàn giao hoàn thiện cơ bản." }], ["contact", { title: "Nhận bảng giá và chính sách" }]],
+  beauty: [["hero"], ["products", { title: "Bảng giá dịch vụ" }], ["booking", { title: "Đặt lịch" }], ["gallery", { title: "Tác phẩm" }], ["reviews", { title: "Khách nói gì" }], ["faq", { items: "Có cần đặt lịch trước không? | Nên đặt trước để chọn được thợ và giờ đẹp.\nĐến trễ có sao không? | Giữ lịch 15 phút, quá giờ sẽ xếp lượt kế tiếp.\nCó gửi xe không? | Có chỗ gửi xe máy miễn phí trước tiệm." }]],
+  fitness: [["hero"], ["stats", { items: "40+ | Buổi lớp mỗi tuần\n12 | Huấn luyện viên\n5:30 – 22:00 | Mở cửa\n3 ngày | Tập thử miễn phí" }], ["features", { title: "Lớp tập" }], ["products", { title: "Gói tập" }], ["booking", { title: "Đăng ký tập thử" }], ["faq", { items: "Người mới tập được không? | Được, huấn luyện viên hướng dẫn từ buổi đầu.\nCó tủ đồ, phòng tắm không? | Có tủ khoá và phòng tắm nước nóng.\nBảo lưu gói được không? | Bảo lưu tối đa 30 ngày mỗi năm." }]],
+};
+
+export function layoutTypes(project: Project): ComponentType[] {
+  const kind = getCategory(project.category)?.kind ?? "shop";
+  return LAYOUTS[kind].map(([t]) => t);
+}
+
+/** Các khối của mẫu, sẵn sàng gắn vào vùng Nội dung (bỏ những loại chỉ đặt một lần đã có). */
+export function templateBlocks(project: Project, existing: Set<ComponentType> = new Set(), uid: (i: number) => string = () => newUid()): PlacedComponent[] {
+  const kind = getCategory(project.category)?.kind ?? "shop";
+  return LAYOUTS[kind]
+    .filter(([t]) => !(getComponentDef(t)?.unique && existing.has(t)))
+    .map(([type, props], i) => ({ uid: uid(i), type, props: { ...(getComponentDef(type)?.defaults ?? {}), ...(props ?? {}) }, included: true }));
+}
+
+/** Web tạo trước khi có bố cục khối: chèn các khối của mẫu lên đầu vùng Nội dung. */
+export function withTemplateLayout(site: CustomerSite): CustomerSite {
+  if (site.layout === 2) return site;
+  const project = getProject(site.template);
+  if (!project) return { ...site, layout: 2 };
+  const existing = new Set(site.regions.main.map((c) => c.type));
+  // uid cố định để đọc lại nhiều lần vẫn ra cùng kết quả (không bị coi là đã sửa).
+  const blocks = templateBlocks(project, existing, (i) => `mau-${i}`);
+  // Khối mua thêm đã có (sản phẩm, đặt lịch...) đứng sau banner và điểm nổi bật.
+  const head = blocks.filter((b) => b.type === "hero" || b.type === "features");
+  const tail = blocks.filter((b) => !head.includes(b));
+  return { ...site, layout: 2, regions: { ...site.regions, main: [...head, ...site.regions.main, ...tail] } };
+}

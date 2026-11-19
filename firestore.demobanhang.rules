@@ -1,0 +1,45 @@
+rules_version = '2';
+
+// Luật Firestore cho project demobanhang-ab0da: web bán hàng "demo" + Web Master dùng chung một Firestore.
+// Đưa lên bằng: firebase deploy --only firestore:rules --project demobanhang-ab0da
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // Web bán hàng: giữ nguyên chế độ thử như trước (mở đọc/ghi tới 13/12/2026),
+    // trừ hai collection của Web Master bên dưới để chúng không bị mở theo.
+    match /{collection}/{document=**} {
+      allow read, write: if collection != 'customerSites'
+        && collection != 'admins'
+        && request.time < timestamp.date(2026, 12, 13);
+    }
+
+    // ---------------------------------------------------------- Web Master
+
+    // Danh sách admin Web Master: mỗi người chỉ đọc tài liệu của mình; chỉ sửa trong Console.
+    match /admins/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // Web của khách hàng: ai có link cũng xem được một web; chỉ admin liệt kê, tạo, sửa, xoá.
+    match /customerSites/{siteId} {
+      allow get: if true;
+      allow list, create, update, delete: if isAdmin();
+
+      // Đơn hàng, đặt lịch, liên hệ khách gửi từ web: ai cũng gửi được, chỉ admin đọc.
+      match /submissions/{submissionId} {
+        allow create: if request.resource.data.keys().hasOnly(['kind', 'data', 'items', 'total', 'createdAt'])
+          && request.resource.data.kind in ['order', 'booking', 'contact', 'newsletter']
+          && request.resource.data.data is map
+          && request.resource.data.data.size() <= 12
+          && request.resource.data.createdAt is number;
+        allow read, delete: if isAdmin();
+        allow update: if false;
+      }
+    }
+  }
+}

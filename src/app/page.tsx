@@ -87,7 +87,7 @@ export default function HomePage() {
             <h2 className="text-4xl font-bold tracking-tight sm:text-5xl">Chọn theo lĩnh vực</h2>
             <p className="max-w-md text-muted-foreground">Mỗi lĩnh vực có bố cục và tính năng riêng, đã chạy thật trên điện thoại và máy tính.</p>
           </div>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-6">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-5">
             {CATEGORIES.map((c) => (
               <CategoryCard key={c.id} category={c} />
             ))}

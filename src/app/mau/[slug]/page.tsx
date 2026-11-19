@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { ProjectCard } from "@/components/showcase/cards";
 import { CompareBar } from "@/components/showcase/compare-ui";
 import { TemplateDetail } from "@/components/showcase/template-detail";
+import { TemplateParts } from "@/components/showcase/template-parts";
 import { SiteFooter, SiteHeader } from "@/components/site-header";
 import { PROJECTS, getCategory, getProject } from "@/lib/showcase/catalog";
 
@@ -33,8 +34,9 @@ export default async function TemplatePage({ params }: PageProps<"/mau/[slug]">)
         </Link>
 
         <TemplateDetail project={project} categoryName={category?.name} />
+        <TemplateParts project={project} />
 
-        <section className="mt-24">
+        <section className="mt-20">
           <h2 className="mb-8 text-3xl font-bold tracking-tight">{related.length ? `Mẫu ${category?.name.toLowerCase()} khác` : "Mẫu tiêu biểu khác"}</h2>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {more.map((p) => (

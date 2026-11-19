@@ -18,6 +18,23 @@ import { SiteRuntimeProvider } from "./site-runtime";
 
 const HEADING_FONTS = { sans: "inherit", serif: 'var(--font-serif-vn), Georgia, "Times New Roman", serif', mono: 'ui-monospace, "SFMono-Regular", Menlo, monospace' };
 
+/** Màu nhấn đậm dần (pha đen) tới khi chữ trắng trên nó đạt tương phản 4,5:1 (WCAG AA). Màu đã đủ đậm thì giữ nguyên. */
+export function solidAccent(hex: string): string {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return hex;
+  const rgb = [0, 2, 4].map((i) => parseInt(m[1].slice(i, i + 2), 16));
+  const lum = (c: number[]) => {
+    const [r, g, b] = c.map((v) => {
+      const x = v / 255;
+      return x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4;
+    });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+  let c = rgb;
+  for (let k = 0; k < 12 && 1.05 / (lum(c) + 0.05) < 4.5; k++) c = c.map((v) => Math.round(v * 0.9));
+  return "#" + c.map((v) => v.toString(16).padStart(2, "0")).join("");
+}
+
 export function themeVars(project: Project): CSSProperties {
   const p = project.palette;
   const look = project.look ?? DEFAULT_LOOK;
@@ -25,6 +42,7 @@ export function themeVars(project: Project): CSSProperties {
     "--bg": p.bg,
     "--fg": p.fg,
     "--accent": p.accent,
+    "--accent-solid": solidAccent(p.accent),
     "--soft": p.soft,
     "--card": p.card ?? "#ffffff",
     "--r": String(Math.max(look.radius, 0.15)),
@@ -391,7 +409,7 @@ export function SitePage() {
           />
         )}
 
-        <div style={{ background: project.palette.accent }} className="px-4 py-2 text-center text-sm font-medium text-white">
+        <div style={{ background: solidAccent(project.palette.accent) }} className="px-4 py-2 text-center text-sm font-medium text-white">
           {project.announcement}
         </div>
         {region("top", "stack")}

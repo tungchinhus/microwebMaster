@@ -3,7 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 import { CartDrawer, LoginModal, renderBlock } from "@/components/sites/site-blocks";
-import { themeVars } from "@/components/sites/site-page";
+import { solidAccent, themeVars } from "@/components/sites/site-page";
 import { SiteRuntimeProvider } from "@/components/sites/site-runtime";
 import type { ComponentType, RegionId } from "@/lib/sites/components";
 import { templateBlocks } from "@/lib/sites/layouts";
@@ -11,6 +11,7 @@ import { sampleProducts } from "@/lib/sites/products";
 import { emptyRegions, newUid, placedTypes, type PlacedComponent, type SiteRegions } from "@/lib/sites/types";
 import { getComponentDef } from "@/lib/sites/components";
 import { applyVariant, getCategory, normalizeVi, type Project } from "@/lib/showcase/catalog";
+import { Phone } from "lucide-react";
 import { maskMoney } from "./mini-site";
 
 /** Nút đầu trang có sẵn trong bản xem trước theo lĩnh vực (bán hàng thì có tìm kiếm và giỏ hàng). */
@@ -77,6 +78,13 @@ export function TemplatePage({ project: base }: { project: Project }) {
     return { addr: row[1] || "Số 1 Đường Mẫu, Quận 1, TP.HCM", hours: row[2] || "8:00 – 21:00 mỗi ngày", phone: row[3] || "0900 000 000" };
   }, [regions.main]);
   const placed = useMemo(() => placedTypes(regions), [regions]);
+  const mainAction = placed.has("booking")
+    ? { href: "#dat-lich", label: "Đặt lịch" }
+    : placed.has("cart")
+      ? { href: "#san-pham", label: "Mua ngay" }
+      : placed.has("contact")
+        ? { href: "#lien-he", label: "Nhận tư vấn" }
+        : { href: "#noi-dung", label: "Xem ngay" };
 
   const list = (rid: RegionId, cls: string) =>
     regions[rid].length ? (
@@ -91,8 +99,8 @@ export function TemplatePage({ project: base }: { project: Project }) {
 
   return (
     <SiteRuntimeProvider siteId={`xem-${base.slug}`} project={project} products={products} placed={placed} user={null} editing={false} preview>
-      <div className="wsite wm-mask-prices flex min-h-dvh flex-col" style={themeVars(project)}>
-        <div style={{ background: project.palette.accent }} className="px-4 py-2 text-center text-sm font-medium text-white">
+      <div className="wsite wm-mask-prices flex min-h-dvh flex-col pb-16 md:pb-0" style={themeVars(project)}>
+        <div style={{ background: solidAccent(project.palette.accent) }} className="px-4 py-2 text-center text-sm font-medium text-white">
           {maskMoney(project.announcement)}
         </div>
         <header className="sticky top-0 z-20 border-b border-[color-mix(in_srgb,var(--fg)_10%,transparent)] bg-[var(--bg)]">
@@ -152,6 +160,15 @@ export function TemplatePage({ project: base }: { project: Project }) {
           </div>
           <div className="ws-muted border-t border-[color-mix(in_srgb,var(--fg)_8%,transparent)] px-4 py-4 text-center text-xs">© {new Date().getFullYear()} {project.name}. Bản xem trước của mẫu.</div>
         </footer>
+        {/* Điện thoại: thanh hành động dính đáy màn hình như web bán hàng, phòng khám ở VN (gọi + hành động chính). */}
+        <div className="fixed inset-x-0 bottom-0 z-30 flex gap-2 border-t border-[color-mix(in_srgb,var(--fg)_10%,transparent)] bg-[var(--bg)]/95 p-2.5 backdrop-blur md:hidden">
+          <a href={`tel:${firstPlace.phone.replace(/\s/g, "")}`} className="ws-btn-ghost flex-1 !py-2.5 text-sm">
+            <Phone className="size-4" /> Gọi ngay
+          </a>
+          <a href={mainAction.href} className="ws-btn flex-[1.4] !py-2.5 text-sm">
+            {mainAction.label}
+          </a>
+        </div>
         {placed.has("cart") && <CartDrawer />}
         {placed.has("login") && <LoginModal />}
       </div>

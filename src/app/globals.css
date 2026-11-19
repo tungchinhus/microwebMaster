@@ -100,7 +100,7 @@ html {
   transition: filter 0.15s, background 0.15s;
 }
 .wsite .ws-btn {
-  background: var(--accent);
+  background: var(--accent-solid, var(--accent));
   color: #fff;
 }
 .wsite .ws-btn:hover {
@@ -132,10 +132,15 @@ html {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
 }
 .wsite .ws-muted {
-  color: color-mix(in srgb, var(--fg) 62%, transparent);
+  color: color-mix(in srgb, var(--fg) 68%, transparent);
 }
+/* Chữ màu nhấn: pha thêm màu chữ để đủ tương phản (WCAG AA) cả nền sáng lẫn nền tối. */
 .wsite .ws-accent {
-  color: var(--accent);
+  color: color-mix(in srgb, var(--accent) 78%, var(--fg));
+}
+.wsite :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* Che giá trong bản xem trước của mẫu: giá chỉ để minh hoạ, báo giá thật làm riêng cho từng khách.
@@ -144,4 +149,10 @@ html {
 .wm-mask-prices .ws-price {
   filter: blur(0.3em);
   user-select: none;
+}
+
+/* Viền khi dùng bàn phím trên các trang của Web Master */
+:where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--color-primary, #6366f1);
+  outline-offset: 2px;
 }

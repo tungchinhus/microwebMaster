@@ -109,7 +109,7 @@ export function DealsSection({ props }: Props) {
           const sold = 35 + ((i * 17) % 50);
           return (
             <div key={p.id} className="ws-card relative flex flex-col gap-2 p-3">
-              <span className="absolute top-3 left-3 z-10 rounded-full bg-[var(--accent)] px-2 py-0.5 text-xs font-bold text-white">-{off}%</span>
+              <span className="absolute top-3 left-3 z-10 rounded-full bg-[var(--accent-solid)] px-2 py-0.5 text-xs font-bold text-white">-{off}%</span>
               <Artwork seed={`deal-${p.id}`} className="ws-soft aspect-square" />
               <div className="line-clamp-2 text-sm leading-snug font-medium">{p.name}</div>
               <div className="flex flex-wrap items-baseline gap-x-2">
@@ -179,7 +179,7 @@ export function TeamSection({ props }: Props) {
           <div key={name + i} className="ws-card flex flex-col items-center gap-3 p-5 text-center">
             <span
               className="ws-h grid size-20 place-items-center rounded-full text-2xl text-white sm:size-24"
-              style={{ background: `linear-gradient(${135 + i * 40}deg, var(--accent), color-mix(in srgb, var(--accent) 45%, var(--fg)))` }}
+              style={{ background: `linear-gradient(${135 + i * 40}deg, var(--accent-solid), color-mix(in srgb, var(--accent-solid) 70%, #000))` }}
             >
               {initials(name)}
             </span>
@@ -235,7 +235,7 @@ export function PlansSection({ props }: Props) {
             style={i === hot ? { borderColor: "var(--accent)", boxShadow: "0 12px 40px color-mix(in srgb, var(--accent) 22%, transparent)" } : undefined}
           >
             {i === hot && (
-              <span className="absolute -top-3 left-6 inline-flex items-center gap-1 rounded-full bg-[var(--accent)] px-3 py-1 text-xs font-bold text-white">
+              <span className="absolute -top-3 left-6 inline-flex items-center gap-1 rounded-full bg-[var(--accent-solid)] px-3 py-1 text-xs font-bold text-white">
                 <Sparkles className="size-3.5" /> Chọn nhiều nhất
               </span>
             )}
@@ -285,7 +285,7 @@ export function ScheduleSection({ props }: Props) {
         <div className="grid min-w-[640px] grid-cols-7 gap-2">
           {table.map(([day, list], di) => (
             <div key={day} className="space-y-2">
-              <div className={`rounded-lg py-2 text-center text-sm font-bold ${di === today && !own.length ? "bg-[var(--accent)] text-white" : "ws-soft"}`}>{day}</div>
+              <div className={`rounded-lg py-2 text-center text-sm font-bold ${di === today && !own.length ? "bg-[var(--accent-solid)] text-white" : "ws-soft"}`}>{day}</div>
               {list.map((c, k) => (
                 <div key={c + k} className="ws-card p-2.5 text-sm">
                   {times[k] && (

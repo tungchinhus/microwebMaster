@@ -1,6 +1,7 @@
 "use client";
 
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { ChevronDown, Search, SlidersHorizontal, X } from "lucide-react";
+import { layoutTypes } from "@/lib/sites/layouts";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -9,7 +10,7 @@ import { ProjectCard } from "./cards";
 import { CompareBar } from "./compare-ui";
 
 const pill = (active: boolean) =>
-  `rounded-full border px-5 py-2.5 text-[15px] transition ${
+  `shrink-0 whitespace-nowrap rounded-full border px-4 py-2 text-sm transition sm:px-5 sm:py-2.5 sm:text-[15px] ${
     active ? "border-foreground bg-foreground text-background" : "border-border bg-card hover:border-foreground/30"
   }`;
 
@@ -17,6 +18,13 @@ const chip = (active: boolean) =>
   `inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm transition ${
     active ? "border-primary bg-primary/10 font-medium text-primary" : "border-border bg-card text-foreground/80 hover:border-foreground/30"
   }`;
+
+const SORTS = [
+  { id: "noi-bat", name: "Nổi bật" },
+  { id: "day-du", name: "Nhiều phần nhất" },
+  { id: "ten", name: "Tên A–Z" },
+] as const;
+type SortId = (typeof SORTS)[number]["id"];
 
 export function CatalogBrowser() {
   const params = useSearchParams();
@@ -27,8 +35,10 @@ export function CatalogBrowser() {
   const category = getCategory(rawCategory) ? rawCategory : "";
   const selected = (params.get("tinh-nang") ?? "").split(",").filter((f): f is FeatureId => FEATURES.some((x) => x.id === f));
   const [query, setQuery] = useState(params.get("q") ?? "");
+  const [showFeatures, setShowFeatures] = useState(false);
+  const sort = SORTS.some((x) => x.id === params.get("xep")) ? (params.get("xep") as SortId) : "noi-bat";
 
-  const update = (next: { loai?: string; tinhNang?: string[]; q?: string }) => {
+  const update = (next: { loai?: string; tinhNang?: string[]; q?: string; xep?: SortId }) => {
     const sp = new URLSearchParams();
     const loai = next.loai ?? category;
     const tinhNang = next.tinhNang ?? selected;
@@ -36,6 +46,8 @@ export function CatalogBrowser() {
     if (loai) sp.set("loai", loai);
     if (tinhNang.length) sp.set("tinh-nang", tinhNang.join(","));
     if (q.trim()) sp.set("q", q.trim());
+    const xep = next.xep ?? sort;
+    if (xep !== "noi-bat") sp.set("xep", xep);
     const qs = sp.toString();
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   };
@@ -43,9 +55,14 @@ export function CatalogBrowser() {
   const toggleFeature = (id: FeatureId) =>
     update({ tinhNang: selected.includes(id) ? selected.filter((f) => f !== id) : [...selected, id] });
 
-  const list = PROJECTS.filter(
-    (p) => (!category || p.category === category) && selected.every((f) => featuresOf(p).includes(f)) && matchesQuery(p, query),
-  );
+  const list = (() => {
+    const found = PROJECTS.filter(
+      (p) => (!category || p.category === category) && selected.every((f) => featuresOf(p).includes(f)) && matchesQuery(p, query),
+    );
+    if (sort === "day-du") return [...found].sort((a, b) => layoutTypes(b).length - layoutTypes(a).length);
+    if (sort === "ten") return [...found].sort((a, b) => a.name.localeCompare(b.name, "vi"));
+    return [...found].sort((a, b) => Number(!!b.featured) - Number(!!a.featured));
+  })();
   const filtering = !!(category || selected.length || query.trim());
 
   return (
@@ -65,7 +82,7 @@ export function CatalogBrowser() {
         />
       </div>
 
-      <div className="flex flex-wrap gap-2.5">
+      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:gap-2.5 sm:overflow-visible sm:px-0 sm:pb-0">
         <button className={pill(!category)} onClick={() => update({ loai: "" })}>
           Tất cả
         </button>
@@ -74,13 +91,21 @@ export function CatalogBrowser() {
             {c.name}
           </button>
         ))}
-        <span className="inline-flex items-center gap-2 rounded-full border border-dashed border-border px-5 py-2.5 text-[15px] text-muted-foreground">
+        <span className="hidden items-center gap-2 rounded-full border border-dashed border-border px-5 py-2.5 text-[15px] text-muted-foreground sm:inline-flex">
           Lĩnh vực khác <span className="rounded-full border border-border px-2 text-xs">Sắp có</span>
         </span>
       </div>
 
-      <div className="mt-5 flex flex-wrap items-center gap-2">
-        <span className="mr-1 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+      <button
+        className="mt-4 inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium sm:hidden"
+        aria-expanded={showFeatures}
+        onClick={() => setShowFeatures((v) => !v)}
+      >
+        <SlidersHorizontal className="size-4" /> Lọc theo tính năng{selected.length ? ` (${selected.length})` : ""}
+        <ChevronDown className={`size-4 transition ${showFeatures ? "rotate-180" : ""}`} />
+      </button>
+      <div className={`mt-4 flex-wrap items-center gap-2 sm:mt-5 sm:flex ${showFeatures ? "flex" : "hidden"}`}>
+        <span className="mr-1 hidden items-center gap-1.5 text-sm font-medium text-muted-foreground sm:inline-flex">
           <SlidersHorizontal className="size-4" /> Cần có:
         </span>
         {FEATURES.map((f) => (
@@ -91,8 +116,10 @@ export function CatalogBrowser() {
         ))}
       </div>
 
-      <div className="mt-8 mb-6 flex items-center gap-4 text-muted-foreground">
-        <span>{list.length} mẫu</span>
+      <div className="mt-6 mb-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-muted-foreground sm:mt-8 sm:mb-6">
+        <span aria-live="polite">
+          <b className="font-semibold text-foreground">{list.length}</b> mẫu{category ? ` ${getCategory(category)?.name.toLowerCase()}` : ""}
+        </span>
         {filtering && (
           <button
             className="text-sm font-medium text-primary hover:underline"
@@ -104,6 +131,20 @@ export function CatalogBrowser() {
             Xoá bộ lọc
           </button>
         )}
+        <label className="ml-auto inline-flex items-center gap-2 text-sm">
+          Xếp theo
+          <select
+            value={sort}
+            onChange={(e) => update({ xep: e.target.value as SortId })}
+            className="rounded-full border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground outline-none focus:border-primary"
+          >
+            {SORTS.map((x) => (
+              <option key={x.id} value={x.id}>
+                {x.name}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
 
       {list.length ? (

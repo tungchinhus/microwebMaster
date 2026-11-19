@@ -44,8 +44,19 @@ function Title({ children }: { children: React.ReactNode }) {
   return <h2 className="ws-h mb-6 text-2xl sm:text-3xl">{children}</h2>;
 }
 
+/** Chữ trên nút chính của banner theo việc khách sẽ làm (đặt bàn, mua hàng...), không lấy tên mục menu. */
+function ctaLabel(target: string, kind?: string): string {
+  if (target === "#dat-lich")
+    return (
+      { food: "Đặt bàn ngay", travel: "Đặt phòng ngay", fitness: "Đăng ký tập thử", auto: "Đăng ký lái thử", edu: "Đăng ký học thử", health: "Đặt lịch khám" } as Record<string, string>
+    )[kind ?? ""] ?? "Đặt lịch ngay";
+  if (target === "#san-pham") return kind === "shop" ? "Mua sắm ngay" : kind === "food" ? "Xem thực đơn" : "Xem bảng giá";
+  if (target === "#lien-he") return kind === "realestate" ? "Nhận bảng giá" : kind === "jobs" ? "Gửi hồ sơ" : "Nhận tư vấn";
+  return kind === "game" ? "Chơi ngay" : "Khám phá ngay";
+}
+
 export function HeroSection() {
-  const { project } = useSiteRuntime();
+  const { project, placed } = useSiteRuntime();
   const target = useMainTarget();
   const p = project.palette;
   const category = getCategory(project.category);
@@ -58,8 +69,13 @@ export function HeroSection() {
           <p className="max-w-xl text-[15px] leading-relaxed opacity-80 sm:text-lg">{project.summary}</p>
           <div className="flex flex-wrap gap-3 pt-1">
             <a href={target} className="ws-btn">
-              {project.nav[0] ?? "Xem ngay"} <ArrowRight className="size-4" />
+              {ctaLabel(target, category?.kind)} <ArrowRight className="size-4" />
             </a>
+            {target !== "#san-pham" && placed.has("products") && (
+              <a href="#san-pham" className="inline-flex items-center gap-2 rounded-[calc(var(--r)*0.75rem)] border border-current/30 px-5 py-2.5 text-sm font-semibold transition hover:bg-white/10">
+                {category?.kind === "realestate" || category?.kind === "service" || category?.kind === "health" || category?.kind === "beauty" ? "Xem bảng giá" : category?.kind === "food" ? "Xem thực đơn" : "Xem tất cả"}
+              </a>
+            )}
           </div>
         </div>
         <Artwork seed={project.slug + "-hero"} size="hero" className="hidden aspect-[4/3] md:block" style={{ borderRadius: "calc(var(--r) * 1.25rem)" }} />
@@ -78,9 +94,9 @@ export function FeaturesSection({ props }: Props) {
       {/* 4 hay 8 mục thì xếp 4 cột cho khỏi lẻ một thẻ ở hàng cuối */}
       <ul className={`grid gap-3 sm:grid-cols-2 ${list.length % 4 === 0 ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
         {list.map((f) => (
-          <li key={f} className="ws-card flex items-center gap-3 p-4 text-[15px]">
-            <span className="ws-soft grid size-10 shrink-0 place-items-center">
-              <KindIcon className="ws-accent size-5" strokeWidth={1.6} />
+          <li key={f} className="ws-card flex items-center gap-3 p-4 text-[15px] leading-snug font-medium sm:flex-col sm:items-start sm:gap-4 sm:p-5 sm:text-base">
+            <span className="grid size-11 shrink-0 place-items-center rounded-full" style={{ background: "color-mix(in srgb, var(--accent) 14%, transparent)" }}>
+              <KindIcon className="ws-accent size-5" strokeWidth={1.8} />
             </span>
             {f}
           </li>
@@ -137,9 +153,15 @@ export function GallerySection({ props }: Props) {
   return (
     <section>
       {props.title && <Title>{props.title}</Title>}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+      {/* 5 ô: máy tính 4 cột (ô đầu 2x2), điện thoại 2 cột (ô đầu cao 2 hàng): lưới luôn kín, không quá cao. */}
+      <div className={`grid grid-cols-2 gap-3 ${tiles.length === 5 ? "md:grid-cols-4" : "md:grid-cols-3"}`}>
         {tiles.map((src, i) => (
-          <div key={src + i} className={`ws-soft grid place-items-center overflow-hidden ${i === 0 && tiles.length >= 3 ? "row-span-2 aspect-[3/4] md:aspect-auto" : "aspect-[4/3]"}`}>
+          <div
+            key={src + i}
+            className={`ws-soft grid place-items-center overflow-hidden ${
+              i === 0 && tiles.length >= 3 ? `row-span-2 aspect-[3/4] md:aspect-auto ${tiles.length === 5 ? "md:col-span-2" : ""}` : "aspect-[4/3]"
+            }`}
+          >
             {src ? (
               // eslint-disable-next-line @next/next/no-img-element -- ảnh do admin dán link
               <img src={src} alt="" className="size-full object-cover" />

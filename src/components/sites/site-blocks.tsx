@@ -47,7 +47,7 @@ function formData(e: React.FormEvent<HTMLFormElement>): Record<string, string> {
 function Done({ text, onAgain, againLabel = "Gửi thêm" }: { text: string; onAgain?: () => void; againLabel?: string }) {
   return (
     <div className="flex flex-col items-center gap-3 py-6 text-center">
-      <span className="flex size-12 items-center justify-center rounded-full bg-[var(--accent)] text-white">
+      <span className="flex size-12 items-center justify-center rounded-full bg-[var(--accent-solid)] text-white">
         <Check className="size-6" />
       </span>
       <p className="font-semibold">{text}</p>

@@ -184,3 +184,14 @@ Mỗi lĩnh vực có bố cục trang chủ dựng theo web thật đang chạy
 
 Khối mới nằm ở `src/components/sites/site-sections-more.tsx`: danh mục, flash sale, cam kết, đội ngũ, quy trình, bảng gói, lịch tuần, mốc tiến độ, chi nhánh, tin tức, đối tác. Các khối này miễn phí, chỉ đặt ở vùng Nội dung, sửa nội dung theo dòng `a | b | c`.
 Trang xem mẫu (`/xem/[slug]`) gắn menu với từng khối để bấm là cuộn tới, có menu cuộn ngang trên điện thoại và chân trang đủ cột. Giá trong khối flash sale và bảng gói vẫn bị che.
+
+## Nâng cấp UX/UI kho mẫu
+
+- Kho mẫu: trên điện thoại, lĩnh vực nằm trên một hàng cuộn ngang và bộ lọc tính năng gập lại, nên mẫu đầu tiên hiện ngay. Có thêm ô xếp theo (Nổi bật, Nhiều phần nhất, Tên A–Z).
+- Thẻ mẫu có nút "Xem trọn mẫu" và hiện số phần của trang.
+- Trang chi tiết mẫu có mục "Trang chủ gồm N phần", bấm từng phần để mở đúng phần đó trên bản xem trọn mẫu.
+- Trong mẫu, nút banner ghi đúng việc khách làm (Đặt bàn ngay, Mua sắm ngay...). Trên điện thoại có thanh Gọi ngay / Đặt lịch dính đáy màn hình.
+- Tương phản theo WCAG AA:
+  - Màu nhấn quá nhạt sẽ tự đậm lên (`solidAccent`) để chữ trắng trên nút đủ rõ.
+  - Chữ màu nhấn và chữ phụ được làm đậm hơn.
+  - Có viền khi dùng bàn phím.

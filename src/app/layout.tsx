@@ -10,7 +10,7 @@ const mono = JetBrains_Mono({ variable: "--font-mono-code", subsets: ["latin", "
 
 export const metadata: Metadata = {
   title: { default: "Web Master - Website riêng, chọn mẫu là có", template: "%s | Web Master" },
-  description: "Kho mẫu website bán hàng, giáo dục, dịch vụ, tuyển dụng, 3D... Giá cố định từ 3.900.000đ, bàn giao trong vài ngày, hoặc tự tạo bằng AI.",
+  description: "Kho mẫu website bán hàng, giáo dục, dịch vụ, tuyển dụng, 3D... Giá cố định, bàn giao trong vài ngày, hoặc tự tạo bằng AI.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

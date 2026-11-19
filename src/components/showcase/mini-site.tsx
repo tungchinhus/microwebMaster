@@ -83,6 +83,14 @@ function Price({ children }: { children: React.ReactNode }) {
   return <span className="wm-price">{children}</span>;
 }
 
+/** Che các số tiền nằm trong câu chữ của bản xem trước (thanh thông báo: "Freeship đơn từ 99.000đ"...). */
+const MONEY = /(\d[\d.,]*\s?(?:đ|k|tỷ|triệu)(?![\p{L}]))/u;
+function maskMoney(text: string): React.ReactNode {
+  const parts = text.split(MONEY);
+  if (parts.length === 1) return text;
+  return parts.map((t, i) => (i % 2 ? <Price key={i}>{t}</Price> : t));
+}
+
 /** Giá mẫu dạng chữ, ưu tiên sản phẩm riêng của mẫu. */
 function samplePrice(project: Project, i: number): string {
   const s = project.samples?.[i % (project.samples?.length || 1)];
@@ -151,7 +159,7 @@ function DesktopHeader({ project }: { project: Project }) {
   return (
     <>
       <div style={{ background: p.accent, color: "#fff", textAlign: "center", fontSize: "0.85em", padding: "0.45em 0", fontWeight: 500 }}>
-        {project.announcement}
+        {maskMoney(project.announcement)}
       </div>
       {project.look?.centeredHeader ? (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.8em", padding: "1.4em 4em 1.2em", borderBottom: `0.1em solid ${fade(p.fg, 0.1)}`, marginBottom: "1.6em" }}>
@@ -449,7 +457,7 @@ function JobsBody({ project }: { project: Project }) {
                 ))}
               </div>
             </div>
-            <span style={{ fontWeight: 700, color: p.accent }}>{salary}</span>
+            <span style={{ fontWeight: 700, color: p.accent }}><Price>{salary}</Price></span>
           </div>
         ))}
       </div>
@@ -524,7 +532,7 @@ function AiBody({ project }: { project: Project }) {
           ].map(([v, d]) => (
             <div key={v} style={{ background: p.card ?? "#fff", borderRadius: "calc(var(--r) * 1em)", padding: "1.2em 1.4em", border: `0.1em solid ${fade(p.fg, 0.08)}` }}>
               <div style={bar("50%", fade(p.fg, 0.2))} />
-              <div style={{ fontWeight: 800, fontSize: "1.9em", marginTop: "0.5em" }}>{v}</div>
+              <div style={{ fontWeight: 800, fontSize: "1.9em", marginTop: "0.5em" }}>{v.endsWith("tr") ? <Price>{v}</Price> : v}</div>
               <div style={{ color: "#16a34a", fontSize: "0.85em", fontWeight: 700 }}>{d}</div>
             </div>
           ))}
@@ -567,7 +575,7 @@ function AutoBody({ project }: { project: Project }) {
               <Car style={{ width: "50%", height: "auto", color: p.fg, strokeWidth: 1 }} />
             </div>
             <span style={{ fontWeight: 700 }}>{n}</span>
-            <span style={{ color: p.accent, fontWeight: 700, fontSize: "0.95em" }}>{price}</span>
+            <span style={{ color: p.accent, fontWeight: 700, fontSize: "0.95em" }}><Price>{price}</Price></span>
           </div>
         ))}
       </div>
@@ -957,7 +965,7 @@ export function MobilePreview({ project, className = "" }: { project: Project; c
     <div className={`@container overflow-hidden ${className}`} aria-hidden>
       <div style={{ ...lookVars(project), fontSize: "2.5cqw", background: p.bg, color: p.fg, aspectRatio: "9 / 17", display: "flex", flexDirection: "column", overflow: "hidden", lineHeight: 1.3 }}>
         <div style={{ background: p.accent, color: "#fff", textAlign: "center", fontSize: "0.85em", padding: "0.5em 1em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-          {project.announcement}
+          {maskMoney(project.announcement)}
         </div>
         <div style={{ display: "flex", alignItems: "center", padding: "1.2em 1.6em" }}>
           <Menu style={{ width: "1.8em", height: "1.8em" }} />

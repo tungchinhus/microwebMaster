@@ -94,7 +94,7 @@ export function CompareView() {
 
         {[
           { label: "Lĩnh vực", render: (p: Project) => getCategory(p.category)?.name },
-          { label: "Giá trọn gói", render: (p: Project) => <span className="font-semibold">từ {formatVnd(p.price)}</span> },
+          { label: "Giá trọn gói", render: (p: Project) => <span className="font-semibold">từ <span className="wm-price">{formatVnd(p.price)}</span></span> },
           { label: "Số giao diện", render: (p: Project) => `${variantsOf(p).length} giao diện` },
           { label: "Tự tạo bằng AI", render: (p: Project) => <Cell ok={!!p.aiReady} /> },
         ].map((r) => (

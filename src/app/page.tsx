@@ -75,7 +75,7 @@ export default function HomePage() {
               </Link>
             </div>
             <p className="text-[15px] text-muted-foreground">
-              Từ {formatVnd(SITE.startingPrice)} · Hoàn tiền trong {SITE.refundDays} ngày
+              Từ <span className="wm-price">{formatVnd(SITE.startingPrice)}</span> · Hoàn tiền trong {SITE.refundDays} ngày
             </p>
           </div>
           <HeroShowcase />
@@ -149,7 +149,7 @@ export default function HomePage() {
                     <h3 className="text-xl font-semibold">{plan.name}</h3>
                     {plan.highlight && <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold">Phổ biến</span>}
                   </div>
-                  <div className="text-4xl font-bold tracking-tight">{plan.price}</div>
+                  <div className="text-4xl font-bold tracking-tight">{/\d/.test(plan.price) ? <span className="wm-price">{plan.price}</span> : plan.price}</div>
                   <p className={plan.highlight ? "opacity-80" : "text-muted-foreground"}>{plan.note}</p>
                 </div>
                 <ul className="space-y-3 text-[15px]">

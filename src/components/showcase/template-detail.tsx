@@ -108,7 +108,7 @@ export function TemplateDetail({ project, categoryName }: { project: Project; ca
         </ul>
         <div className="rounded-[24px] border border-border/60 bg-card p-6 lg:sticky lg:top-28">
           <div className="text-sm text-muted-foreground">Giá trọn gói · giao diện {variant.name}</div>
-          <div className="mt-1 text-3xl font-bold tracking-tight">từ {formatVnd(project.price)}</div>
+          <div className="mt-1 text-3xl font-bold tracking-tight">từ <span className="wm-price">{formatVnd(project.price)}</span></div>
           <div className="mt-1 text-sm text-muted-foreground">
             Bàn giao trong {SITE.deliveryDays} · Hoàn tiền trong {SITE.refundDays} ngày
           </div>

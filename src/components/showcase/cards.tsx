@@ -35,7 +35,7 @@ export function ProjectCard({ project, showSummary = false }: { project: Project
           <span className="text-foreground/75">
             {getCategory(project.category)?.name} · {variantsOf(project).length} giao diện
           </span>
-          <span className="font-medium">từ {formatVnd(project.price)}</span>
+          <span className="font-medium">từ <span className="wm-price">{formatVnd(project.price)}</span></span>
         </div>
       </div>
     </Link>

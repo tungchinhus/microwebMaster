@@ -9,11 +9,50 @@ import type { ComponentType, RegionId } from "@/lib/sites/components";
 import { templateBlocks } from "@/lib/sites/layouts";
 import { sampleProducts } from "@/lib/sites/products";
 import { emptyRegions, newUid, placedTypes, type PlacedComponent, type SiteRegions } from "@/lib/sites/types";
-import { applyVariant, getCategory, type Project } from "@/lib/showcase/catalog";
+import { getComponentDef } from "@/lib/sites/components";
+import { applyVariant, getCategory, normalizeVi, type Project } from "@/lib/showcase/catalog";
 import { maskMoney } from "./mini-site";
 
 /** Nút đầu trang có sẵn trong bản xem trước theo lĩnh vực (bán hàng thì có tìm kiếm và giỏ hàng). */
 const HEADER_BY_KIND: Partial<Record<string, ComponentType[]>> = { shop: ["search", "cart"] };
+
+/** Từ khoá của mục menu → loại khối nên cuộn tới. */
+const NAV_HINTS: [RegExp, ComponentType[]][] = [
+  [/lien he|dia chi|chi nhanh|cua hang|showroom|vi tri|ban do/, ["locations", "contact", "booking"]],
+  [/dat (lich|ban|cho|phong)|dang ky|tap thu|lai thu|hen/, ["booking", "contact"]],
+  [/khuyen mai|uu dai|sale|giam gia|combo|voucher/, ["deals", "plans", "cta"]],
+  [/bang gia|goi|the thanh vien|hoc phi|gia/, ["plans", "products"]],
+  [/tin|blog|cam nang|bai viet|kien thuc|su kien/, ["blog"]],
+  [/bac si|doi ngu|giang vien|hlv|huan luyen|tho|stylist|chuyen gia|nhan su/, ["team"]],
+  [/lich|thoi khoa bieu|khung gio/, ["schedule", "booking"]],
+  [/tien do|lich trinh|hanh trinh/, ["timeline"]],
+  [/gioi thieu|ve chung toi|cau chuyen|tong quan/, ["about", "features"]],
+  [/tien ich|tien nghi|vi sao/, ["features"]],
+  [/hinh anh|thu vien|tac pham|khong gian|phoi canh|anh/, ["gallery"]],
+  [/danh muc|nganh|chuyen khoa|dong xe|bo mon/, ["categories", "features"]],
+  [/danh gia|cam nhan|khach hang/, ["reviews"]],
+  [/hoi dap|faq|cau hoi/, ["faq"]],
+  [/quy trinh|lo trinh|cach/, ["steps"]],
+];
+
+const anchorOf = (c: PlacedComponent) => `khoi-${c.type}`;
+
+/** Gắn mỗi mục menu với một khối trên trang để bấm là cuộn tới (khớp theo tên khối, rồi theo từ khoá). */
+function navTargets(nav: string[], blocks: PlacedComponent[]): string[] {
+  const used = new Set<string>();
+  const title = (c: PlacedComponent) => normalizeVi(c.props.title || getComponentDef(c.type)?.name || "");
+  return nav.map((item) => {
+    const n = normalizeVi(item);
+    const free = blocks.filter((c) => c.type !== "hero" && !used.has(c.uid));
+    const words = n.split(/\s+/).filter((w) => w.length > 2);
+    let hit = free.find((c) => title(c).includes(n) || (words.length > 0 && words.every((w) => title(c).includes(w))));
+    if (!hit) for (const [re, types] of NAV_HINTS) if (re.test(n) && (hit = types.map((t) => free.find((c) => c.type === t)).find(Boolean))) break;
+    hit ??= free.find((c) => c.type === "products") ?? free.find((c) => c.type === "categories") ?? free[0];
+    if (!hit) return "#noi-dung";
+    used.add(hit.uid);
+    return `#${anchorOf(hit)}`;
+  });
+}
 
 /**
  * Toàn bộ trang của một mẫu trong kho, dựng từ đúng các khối mà web khách nhận được
@@ -31,13 +70,21 @@ export function TemplatePage({ project: base }: { project: Project }) {
     return r;
   }, [base]);
   const products = useMemo(() => sampleProducts(base), [base]);
+  const links = useMemo(() => navTargets(project.nav, regions.main), [project.nav, regions.main]);
+  const firstPlace = useMemo(() => {
+    const loc = regions.main.find((c) => c.type === "locations");
+    const row = (loc?.props.items ?? "").split("\n")[0]?.split("|").map((x) => x.trim()) ?? [];
+    return { addr: row[1] || "Số 1 Đường Mẫu, Quận 1, TP.HCM", hours: row[2] || "8:00 – 21:00 mỗi ngày", phone: row[3] || "0900 000 000" };
+  }, [regions.main]);
   const placed = useMemo(() => placedTypes(regions), [regions]);
 
   const list = (rid: RegionId, cls: string) =>
     regions[rid].length ? (
       <div className={cls}>
         {regions[rid].map((c: PlacedComponent) => (
-          <div key={c.uid || newUid()}>{renderBlock(c)}</div>
+          <div key={c.uid || newUid()} id={rid === "main" ? anchorOf(c) : undefined} className={rid === "main" ? "scroll-mt-28" : undefined}>
+            {renderBlock(c)}
+          </div>
         ))}
       </div>
     ) : null;
@@ -55,19 +102,55 @@ export function TemplatePage({ project: base }: { project: Project }) {
               <span className="ws-accent">.</span>
             </span>
             <nav className="ws-muted hidden gap-6 text-[15px] lg:flex">
-              {project.nav.map((n) => (
-                <span key={n}>{n}</span>
+              {project.nav.map((n, i) => (
+                <a key={n} href={links[i]} className="transition hover:text-[var(--fg)]">
+                  {n}
+                </a>
               ))}
             </nav>
             <div className="ml-auto">{list("header", "flex flex-wrap items-center gap-2")}</div>
           </div>
+          {/* Điện thoại: menu cuộn ngang ngay dưới tên, bấm là tới phần tương ứng */}
+          <nav className="ws-muted -mt-1 flex gap-2 overflow-x-auto px-4 pb-3 text-sm [scrollbar-width:none] lg:hidden">
+            {project.nav.map((n, i) => (
+              <a key={n} href={links[i]} className="ws-soft shrink-0 px-3 py-1.5 font-medium whitespace-nowrap">
+                {n}
+              </a>
+            ))}
+          </nav>
         </header>
-        <main className="mx-auto w-full max-w-7xl flex-1 px-4 pt-6 pb-12">{list("main", "space-y-14")}</main>
-        <footer className="border-t border-[color-mix(in_srgb,var(--fg)_10%,transparent)]">
-          <div className="ws-muted mx-auto flex max-w-7xl flex-wrap justify-between gap-3 px-4 py-10 text-sm">
-            <span>© {project.name}</span>
-            <span>{project.nav.join(" · ")}</span>
+        <main id="noi-dung" className="mx-auto w-full max-w-7xl flex-1 px-4 pt-6 pb-16">{list("main", "space-y-16 sm:space-y-20")}</main>
+        <footer className="border-t border-[color-mix(in_srgb,var(--fg)_10%,transparent)] bg-[color-mix(in_srgb,var(--fg)_3%,var(--bg))]">
+          <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 text-sm sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+            <div className="space-y-3">
+              <div className="ws-h text-xl">
+                {project.name}
+                <span className="ws-accent">.</span>
+              </div>
+              <p className="ws-muted max-w-xs leading-relaxed">{project.summary}</p>
+            </div>
+            <div className="space-y-2">
+              <div className="font-semibold">Khám phá</div>
+              {project.nav.map((n, i) => (
+                <a key={n} href={links[i]} className="ws-muted block hover:text-[var(--fg)]">
+                  {n}
+                </a>
+              ))}
+            </div>
+            <div className="ws-muted space-y-2">
+              <div className="font-semibold text-[var(--fg)]">Liên hệ</div>
+              <p>{firstPlace.addr}</p>
+              <p>Hotline: {firstPlace.phone}</p>
+              <p>Giờ mở cửa: {firstPlace.hours}</p>
+            </div>
+            <div className="ws-muted space-y-2">
+              <div className="font-semibold text-[var(--fg)]">Chính sách</div>
+              <p>Chính sách bảo mật</p>
+              <p>Điều khoản sử dụng</p>
+              <p>Hướng dẫn thanh toán</p>
+            </div>
           </div>
+          <div className="ws-muted border-t border-[color-mix(in_srgb,var(--fg)_8%,transparent)] px-4 py-4 text-center text-xs">© {new Date().getFullYear()} {project.name}. Bản xem trước của mẫu.</div>
         </footer>
         {placed.has("cart") && <CartDrawer />}
         {placed.has("login") && <LoginModal />}

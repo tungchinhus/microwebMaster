@@ -172,3 +172,15 @@ Mỗi component chỉ nằm ở vùng hợp với chức năng của nó (`regio
 - Nút nổi: nút Zalo.
 
 Trong trình sửa, thêm component từ vùng sai sẽ tự đặt vào vùng đúng và báo lý do; kéo thả được sang vùng khác nếu luật cho phép, vùng không hợp lệ hiện viền đỏ kèm lý do. Dữ liệu cũ đặt sai vùng được `fixPlacement` sửa khi đọc lên.
+
+## Mẫu đầy đủ theo từng lĩnh vực
+
+Mỗi lĩnh vực có bố cục trang chủ dựng theo web thật đang chạy ở Việt Nam (`src/lib/sites/layouts.ts`), ví dụ:
+
+- Bán hàng: banner, dải cam kết, danh mục, flash sale có đếm ngược, sản phẩm bán chạy, đánh giá, cẩm nang, hỏi đáp, đăng ký nhận tin.
+- Phòng khám: số liệu, đội ngũ bác sĩ, quy trình khám, bảng giá, bảo hiểm và thanh toán, đặt lịch, địa chỉ.
+- Bất động sản: tổng quan, tiện ích, phối cảnh, bảng giá, phương thức thanh toán, tiến độ xây dựng, vị trí, tin dự án.
+- Phòng tập: lịch lớp trong tuần, bộ môn, huấn luyện viên, gói tập, đăng ký tập thử.
+
+Khối mới nằm ở `src/components/sites/site-sections-more.tsx`: danh mục, flash sale, cam kết, đội ngũ, quy trình, bảng gói, lịch tuần, mốc tiến độ, chi nhánh, tin tức, đối tác. Các khối này miễn phí, chỉ đặt ở vùng Nội dung, sửa nội dung theo dòng `a | b | c`.
+Trang xem mẫu (`/xem/[slug]`) gắn menu với từng khối để bấm là cuộn tới, có menu cuộn ngang trên điện thoại và chân trang đủ cột. Giá trong khối flash sale và bảng gói vẫn bị che.

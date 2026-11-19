@@ -64,7 +64,18 @@ export type ComponentType =
   | "contact"
   | "reviews"
   | "newsletter"
-  | "zalo";
+  | "zalo"
+  | "categories"
+  | "deals"
+  | "policies"
+  | "team"
+  | "steps"
+  | "plans"
+  | "schedule"
+  | "timeline"
+  | "locations"
+  | "blog"
+  | "partners";
 
 const ONE_PER_LINE = "Mỗi dòng một mục, để trống thì dùng nội dung của mẫu";
 
@@ -173,6 +184,41 @@ export const SECTIONS: ComponentDef[] = [
       items: "Bao lâu thì nhận được hàng? | Nội thành 2 giờ, tỉnh khác 2–3 ngày.\nCó được đổi trả không? | Đổi trả trong 7 ngày nếu sản phẩm lỗi.\nThanh toán thế nào? | Tiền mặt khi nhận hàng hoặc chuyển khoản.",
     },
   },
+];
+
+
+/** Khối nội dung rộng thêm vào trang mẫu: miễn phí, chỉ đặt ở Nội dung, mỗi loại một lần. */
+function more(type: ComponentType, name: string, description: string, itemsLabel: string, defaults: Record<string, string>, extraFields: ComponentField[] = []): ComponentDef {
+  return {
+    type,
+    name,
+    description,
+    price: 0,
+    regions: ["main"],
+    why: "Khối nội dung rộng, cần nằm trong phần thân trang.",
+    unique: true,
+    section: true,
+    fields: [{ key: "title", label: "Tiêu đề khối" }, { key: "sub", label: "Dòng mô tả ngắn" }, { key: "items", label: itemsLabel, multiline: true, placeholder: ONE_PER_LINE }, ...extraFields],
+    defaults: { sub: "", ...defaults },
+  };
+}
+
+/** Các khối hay gặp trên trang chủ web thật theo ngành (tham khảo web bán hàng, phòng khám, dự án, phòng gym... ở Việt Nam). */
+export const MORE_SECTIONS: ComponentDef[] = [
+  more("categories", "Danh mục nổi bật", "Ô danh mục có hình, bấm để xem sản phẩm. Để trống thì lấy theo menu của mẫu.", "Mỗi dòng: tên | mô tả ngắn", { title: "Danh mục nổi bật", items: "" }),
+  more("deals", "Flash sale", "Dải khuyến mãi có đồng hồ đếm ngược tới nửa đêm, giá gạch và thanh đã bán.", "Không dùng", { title: "Flash sale hôm nay", percent: "20" }, [{ key: "percent", label: "Giảm bao nhiêu %" }]),
+  more("policies", "Dải cam kết", "Giao nhanh, đổi trả, chính hãng, thanh toán: bốn cam kết ngay dưới banner.", "Mỗi dòng: cam kết | mô tả", {
+    title: "",
+    items: "Giao nhanh 2 giờ | Nội thành, miễn phí đơn từ 500k\nĐổi trả 7 ngày | Lỗi là đổi, không hỏi lý do\nHàng chính hãng | Có hoá đơn, bảo hành rõ ràng\nThanh toán linh hoạt | COD, chuyển khoản, ví điện tử",
+  }),
+  more("team", "Đội ngũ", "Thẻ người: ảnh, tên, vai trò. Tạo tin cậy cho phòng khám, trung tâm, salon.", "Mỗi dòng: tên | vai trò | ghi chú", { title: "Đội ngũ", items: "Nguyễn Minh Anh | Sáng lập | 10 năm kinh nghiệm\nTrần Quốc Huy | Chuyên gia | Đào tạo bài bản\nLê Thu Hà | Chăm sóc khách hàng | Luôn sẵn sàng hỗ trợ" }),
+  more("steps", "Quy trình", "Các bước đánh số: khách biết sẽ diễn ra thế nào.", "Mỗi dòng: bước | mô tả", { title: "Quy trình", items: "Liên hệ | Gọi hoặc nhắn Zalo, tư vấn miễn phí\nChọn gói | Chọn dịch vụ phù hợp nhu cầu\nThực hiện | Làm đúng hẹn, cập nhật liên tục\nHậu mãi | Bảo hành và chăm sóc sau đó" }),
+  more("plans", "Bảng gói", "Ba cột gói, cột giữa nổi bật. Hợp cho gói tập, thẻ thành viên, gói phần mềm.", "Mỗi dòng: tên gói | giá | tính năng; tính năng | đơn vị", { title: "Chọn gói phù hợp", items: "Cơ bản | 299000 | Tính năng chính; Hỗ trợ qua email | tháng\nPhổ biến | 599000 | Mọi tính năng; Hỗ trợ ưu tiên; Báo cáo hằng tuần | tháng\nDoanh nghiệp | 1499000 | Không giới hạn; Quản lý riêng; Đào tạo tại chỗ | tháng" }),
+  more("schedule", "Lịch tuần", "Bảng lịch 7 ngày, hôm nay được tô màu. Để trống thì lấy danh sách lớp của mẫu.", "Mỗi dòng: thứ | lớp 1, lớp 2", { title: "Lịch trong tuần", items: "", times: "6:00, 18:00, 19:30" }, [{ key: "times", label: "Khung giờ (cách nhau bởi dấu phẩy)" }]),
+  more("timeline", "Mốc tiến độ", "Dòng thời gian các mốc: tiến độ xây dựng, lịch trình tour, lịch sử thương hiệu.", "Mỗi dòng: mốc | mô tả", { title: "Hành trình", items: "2018 | Mở cửa hàng đầu tiên\n2020 | Ra mắt bán hàng online\n2023 | Mở chi nhánh thứ 3\n2026 | Phục vụ 50.000 khách", done: "" }, [{ key: "done", label: "Số mốc đã xong" }]),
+  more("locations", "Chi nhánh", "Bản đồ minh hoạ và danh sách địa chỉ, giờ mở cửa, số gọi.", "Mỗi dòng: tên | địa chỉ | giờ mở | số điện thoại", { title: "Hệ thống cửa hàng", items: "Chi nhánh Quận 1 | 12 Lê Lợi, Q.1, TP.HCM | 8:00 – 22:00 | 0901 234 567\nChi nhánh Cầu Giấy | 88 Trần Thái Tông, Hà Nội | 8:00 – 22:00 | 0902 345 678" }),
+  more("blog", "Tin tức", "Ba bài viết mới nhất: tăng tin cậy và giúp lên Google.", "Mỗi dòng: tiêu đề | tóm tắt | nhãn", { title: "Tin tức & cẩm nang", items: "Cẩm nang cho người mới | Những điều nên biết trước khi bắt đầu. | Cẩm nang\nƯu đãi tháng này | Tổng hợp chương trình đang diễn ra. | Khuyến mãi\nCâu chuyện khách hàng | Khách hàng chia sẻ trải nghiệm thật. | Câu chuyện" }),
+  more("partners", "Đối tác", "Dải tên đối tác, khách hàng tiêu biểu.", "Mỗi dòng: tên đối tác", { title: "Đồng hành cùng", items: "Sao Mai\nPhương Nam\nAn Khang\nHải Đăng\nThiên Long" }),
 ];
 
 /** Component mua thêm, cộng vào báo giá. */
@@ -288,7 +334,7 @@ export const ADDONS: ComponentDef[] = [
   },
 ];
 
-export const COMPONENTS: ComponentDef[] = [...SECTIONS, ...ADDONS];
+export const COMPONENTS: ComponentDef[] = [...SECTIONS, ...MORE_SECTIONS, ...ADDONS];
 
 export function getComponentDef(type: string): ComponentDef | undefined {
   return COMPONENTS.find((c) => c.type === type);

@@ -8,6 +8,7 @@ import { formatPrice } from "@/lib/sites/products";
 import { safeImageUrl, type PlacedComponent, type Submission } from "@/lib/sites/types";
 import { Artwork } from "./site-art";
 import { useSiteRuntime } from "./site-runtime";
+import { BlogSection, CategoriesSection, DealsSection, LocationsSection, PartnersSection, PlansSection, PoliciesSection, ScheduleSection, StepsSection, TeamSection, TimelineSection } from "./site-sections-more";
 import { AboutSection, CtaSection, FaqSection, FeaturesSection, GallerySection, HeroSection, StatsSection } from "./site-sections";
 
 /* ------------------------------------------------------------------ Gửi form */
@@ -514,6 +515,17 @@ export function renderBlock(c: PlacedComponent): React.ReactNode {
     reviews: <ReviewsSection props={c.props} />,
     newsletter: <NewsletterSection props={c.props} />,
     zalo: <ZaloButton props={c.props} />,
+    categories: <CategoriesSection props={c.props} />,
+    deals: <DealsSection props={c.props} />,
+    policies: <PoliciesSection props={c.props} />,
+    team: <TeamSection props={c.props} />,
+    steps: <StepsSection props={c.props} />,
+    plans: <PlansSection props={c.props} />,
+    schedule: <ScheduleSection props={c.props} />,
+    timeline: <TimelineSection props={c.props} />,
+    locations: <LocationsSection props={c.props} />,
+    blog: <BlogSection props={c.props} />,
+    partners: <PartnersSection props={c.props} />,
   };
   return map[c.type];
 }

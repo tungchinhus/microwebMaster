@@ -10,15 +10,25 @@ import { Artwork } from "./site-art";
 import { useSiteRuntime } from "./site-runtime";
 import { AboutSection, CtaSection, FaqSection, FeaturesSection, GallerySection, HeroSection, StatsSection } from "./site-sections";
 
+/** Giá trên web; ở bản xem trước của mẫu thì bị che (.wm-preview .ws-price trong globals.css). */
+function SitePrice({ value }: { value: number }) {
+  return <span className="ws-price">{formatPrice(value)}</span>;
+}
+
 /* ------------------------------------------------------------------ Gửi form */
 
 type SendState = "idle" | "sending" | "done" | "error";
 
 function useSubmit() {
-  const { siteId, editing } = useSiteRuntime();
+  const { siteId, editing, preview } = useSiteRuntime();
   const [state, setState] = useState<SendState>("idle");
   const [error, setError] = useState("");
   const send = async (s: Omit<Submission, "id" | "createdAt">) => {
+    if (preview) {
+      setError("Đây là bản xem trước của mẫu nên form không gửi thật.");
+      setState("error");
+      return false;
+    }
     if (editing) {
       setError("Đang ở chế độ chỉnh sửa nên form không gửi thật.");
       setState("error");
@@ -141,7 +151,7 @@ export function HeaderSearch() {
           {results.map((p) => (
             <div key={p.id} className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-[var(--soft)]">
               <span className="flex-1">{p.name}</span>
-              <span className="ws-accent font-semibold">{formatPrice(p.price)}</span>
+              <span className="ws-accent font-semibold"><SitePrice value={p.price} /></span>
               {placed.has("cart") && (
                 <button onMouseDown={(e) => e.preventDefault()} onClick={() => addToCart(p)} className="ws-btn !p-1.5" aria-label={`Thêm ${p.name} vào giỏ`}>
                   <Plus className="size-3.5" />
@@ -202,7 +212,7 @@ export function ProductsSection({ props }: { props: Record<string, string> }) {
             )}
             <div className="text-sm leading-snug font-medium">{p.name}</div>
             {p.description && <div className="ws-muted line-clamp-2 text-xs leading-relaxed">{p.description}</div>}
-            <div className="ws-accent mt-auto font-bold">{formatPrice(p.price)}</div>
+            <div className="ws-accent mt-auto font-bold"><SitePrice value={p.price} /></div>
             {hasCart ? (
               <button onClick={() => addToCart(p)} className="ws-btn !px-3 !py-2 text-xs whitespace-nowrap sm:text-sm">
                 <Plus className="size-4" /> Thêm vào giỏ
@@ -394,7 +404,7 @@ export function CartDrawer() {
                 <li key={l.id} className="ws-card flex items-center gap-3 p-3">
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-medium">{l.name}</div>
-                    <div className="ws-accent text-sm font-semibold">{formatPrice(l.price)}</div>
+                    <div className="ws-accent text-sm font-semibold"><SitePrice value={l.price} /></div>
                   </div>
                   <div className="flex items-center gap-1">
                     <button onClick={() => setQty(l.id, l.qty - 1)} className="rounded-full p-1.5 hover:bg-[var(--soft)]" aria-label="Bớt">
@@ -413,7 +423,7 @@ export function CartDrawer() {
             </ul>
             <div className="flex items-baseline justify-between text-lg">
               <span>Tạm tính</span>
-              <span className="ws-accent font-bold">{formatPrice(total)}</span>
+              <span className="ws-accent font-bold"><SitePrice value={total} /></span>
             </div>
             <form
               className="space-y-3"
@@ -430,7 +440,7 @@ export function CartDrawer() {
               <textarea name="note" rows={2} placeholder="Ghi chú (không bắt buộc)" className="ws-input" />
               {error && <p className="text-sm text-red-500">{error}</p>}
               <button disabled={state === "sending"} className="ws-btn w-full">
-                {state === "sending" ? "Đang đặt hàng..." : `Đặt hàng · ${formatPrice(total)}`}
+                {state === "sending" ? "Đang đặt hàng..." : <>Đặt hàng · <SitePrice value={total} /></>}
               </button>
             </form>
           </div>
@@ -441,13 +451,17 @@ export function CartDrawer() {
 }
 
 export function LoginModal() {
-  const { loginOpen, setLoginOpen } = useSiteRuntime();
+  const { loginOpen, setLoginOpen, preview } = useSiteRuntime();
   const [tab, setTab] = useState<"login" | "register">("login");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   if (!loginOpen) return null;
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (preview) {
+      setError("Đây là bản xem trước của mẫu nên chưa đăng nhập được.");
+      return;
+    }
     const d = formData(e);
     setBusy(true);
     setError("");

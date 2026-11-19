@@ -10,7 +10,9 @@ import { ADDONS, SECTIONS, REGIONS, getComponentDef, type ComponentDef, type Com
 import { useSessionUser, useSite } from "@/lib/sites/hooks";
 import { allowedNames, bestRegion, checkPlacement, clampIndex, insertAt, isPinned, regionName, reorderable } from "@/lib/sites/placement";
 import { sampleProducts } from "@/lib/sites/products";
-import { addonTotal, addons, allTypes, newUid, orderRegion, placedTypes, safeImageUrl, type CustomerSite, type PlacedComponent, type SiteHeroText, type SiteProduct } from "@/lib/sites/types";
+import { templateBlocks } from "@/lib/sites/layouts";
+import { maskMoney } from "@/components/showcase/mini-site";
+import { addonTotal, addons, allTypes, emptyRegions, newUid, orderRegion, placedTypes, safeImageUrl, type CustomerSite, type PlacedComponent, type SiteHeroText, type SiteProduct } from "@/lib/sites/types";
 import { DEFAULT_LOOK, applyVariant, getProject, variantsOf, type Project } from "@/lib/showcase/catalog";
 import { CartDrawer, LoginModal, renderBlock } from "./site-blocks";
 import { SiteRuntimeProvider } from "./site-runtime";
@@ -34,15 +36,39 @@ function themeVars(project: Project): CSSProperties {
 }
 
 /** Phần so sánh để biết bản nháp đã khác bản đã lưu chưa. */
+/** Web ảo dựng từ mẫu (đủ các khối của mẫu, sản phẩm mẫu) cho trang demo; undefined nếu không có mẫu. */
+function templatePreviewSite(slug: string, variant: string): CustomerSite | undefined {
+  const project = slug ? getProject(slug) : undefined;
+  if (!project) return undefined;
+  const variantId = variantsOf(project).some((v) => v.id === variant) ? variant : (variantsOf(project)[0]?.id ?? "");
+  return {
+    id: `mau-${project.slug}`,
+    name: project.name,
+    customer: "",
+    template: project.slug,
+    variant: variantId,
+    regions: { ...emptyRegions(), main: templateBlocks(project, new Set(), (i) => `mau-${i}`) },
+    layout: 2,
+    createdAt: 0,
+    updatedAt: 0,
+  };
+}
+
 const snapshot = (s: CustomerSite) => JSON.stringify({ n: s.name, v: s.variant, r: s.regions, p: s.products ?? [], h: s.hero ?? {} });
 
 export function SitePage() {
   const params = useSearchParams();
-  const id = params.get("id") ?? "";
-  const wantEdit = params.get("sua") === "1";
-  const saved = useSite(id);
+  /** /site?mau=<slug>&giao-dien=<id>: dựng cả trang web của mẫu để khách xem, không đọc/ghi dữ liệu. */
+  const mau = params.get("mau") ?? "";
+  const previewVariant = params.get("giao-dien") ?? "";
+  const previewSite = useMemo(() => templatePreviewSite(mau, previewVariant), [mau, previewVariant]);
+  const preview = !!previewSite;
+  const id = preview ? "" : (params.get("id") ?? "");
+  const wantEdit = !preview && params.get("sua") === "1";
+  const loaded = useSite(id);
+  const saved = previewSite ?? loaded;
   const user = useSessionUser();
-  const isAdmin = !!user?.isAdmin;
+  const isAdmin = !preview && !!user?.isAdmin;
 
   const [draft, setDraft] = useState<CustomerSite | null>(null);
   const [editing, setEditing] = useState(false);
@@ -105,7 +131,8 @@ export function SitePage() {
   const regions = shown?.regions;
   const placed = useMemo(() => (regions ? placedTypes(regions) : new Set<ComponentType>()), [regions]);
 
-  if (!id) return <Notice title="Thiếu mã web" text="Đường dẫn cần có dạng /site?id=ma-web." />;
+  if (mau && !preview) return <Notice title="Không tìm thấy mẫu này" text="Mẫu có thể đã đổi tên. Quay lại kho mẫu để chọn mẫu khác." />;
+  if (!id && !preview) return <Notice title="Thiếu mã web" text="Đường dẫn cần có dạng /site?id=ma-web." />;
   if (saved === undefined) return <Notice title="Đang tải..." loading />;
   if (saved === null || !shown || !project || !regions) return <Notice title="Không tìm thấy web này" text="Web có thể đã bị xoá hoặc đường dẫn bị sai." />;
 
@@ -368,8 +395,8 @@ export function SitePage() {
   const editedComponent = propsFor ? regions[propsFor.region].find((c) => c.uid === propsFor.uid) : undefined;
 
   return (
-    <SiteRuntimeProvider siteId={shown.id} project={project} products={products} placed={placed} user={user} editing={editing}>
-      <div className={`wsite flex min-h-dvh flex-col ${isAdmin ? "pt-14" : ""}`} style={themeVars(project)}>
+    <SiteRuntimeProvider siteId={shown.id} project={project} products={products} placed={placed} user={preview ? null : user} editing={editing} preview={preview}>
+      <div className={`wsite flex min-h-dvh flex-col ${isAdmin ? "pt-14" : ""} ${preview ? "wm-preview" : ""}`} style={themeVars(project)}>
         {isAdmin && (
           <AdminBar
             site={shown}
@@ -391,7 +418,7 @@ export function SitePage() {
         )}
 
         <div style={{ background: project.palette.accent }} className="px-4 py-2 text-center text-sm font-medium text-white">
-          {project.announcement}
+          {preview ? maskMoney(project.announcement) : project.announcement}
         </div>
         {region("top", "stack")}
 

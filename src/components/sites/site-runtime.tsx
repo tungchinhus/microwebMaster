@@ -23,6 +23,8 @@ interface SiteRuntime {
   user: SessionUser | null | undefined;
   /** Đang ở chế độ chỉnh sửa: form không gửi thật */
   editing: boolean;
+  /** Bản xem trước của mẫu (/site?mau=...): không gửi form, không đăng nhập, giá bị che */
+  preview: boolean;
   cart: CartLine[];
   addToCart: (p: SampleProduct) => void;
   setQty: (id: string, qty: number) => void;
@@ -57,6 +59,7 @@ export function SiteRuntimeProvider({
   placed,
   user,
   editing,
+  preview = false,
   children,
 }: {
   siteId: string;
@@ -65,6 +68,7 @@ export function SiteRuntimeProvider({
   placed: Set<ComponentType>;
   user: SessionUser | null | undefined;
   editing: boolean;
+  preview?: boolean;
   children: React.ReactNode;
 }) {
   // Giỏ hàng của mỗi web lưu riêng trong trình duyệt khách.
@@ -110,6 +114,7 @@ export function SiteRuntimeProvider({
       placed,
       user,
       editing,
+      preview,
       cart,
       addToCart,
       setQty,
@@ -119,7 +124,7 @@ export function SiteRuntimeProvider({
       loginOpen,
       setLoginOpen,
     }),
-    [siteId, project, products, placed, user, editing, cart, addToCart, setQty, clearCart, cartOpen, loginOpen],
+    [siteId, project, products, placed, user, editing, preview, cart, addToCart, setQty, clearCart, cartOpen, loginOpen],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

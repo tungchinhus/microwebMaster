@@ -1,10 +1,11 @@
 "use client";
 
-import { Check, Maximize2, ShieldCheck, Sparkles } from "lucide-react";
+import { Check, Clock, Maximize2, RotateCcw, ShieldCheck, Sparkles } from "lucide-react";
+import { PriceTag } from "./price-tag";
 import { CompareToggle } from "./compare-ui";
 import Link from "next/link";
 import { useState } from "react";
-import { SITE, formatVnd } from "@/config/site";
+import { SITE } from "@/config/site";
 import { applyVariant, variantsOf, type Project } from "@/lib/showcase/catalog";
 import { useSessionUser } from "@/lib/sites/hooks";
 import { DesktopPreview, MobilePreview } from "./mini-site";
@@ -37,7 +38,7 @@ export function TemplateDetail({ project, categoryName }: { project: Project; ca
             className="group relative block animate-[fadeUp_.4s_ease] overflow-hidden rounded-3xl shadow-2xl shadow-black/10 ring-1 ring-black/5"
           >
             <DesktopPreview project={shown} />
-            <span className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition group-hover:bg-black/30 group-hover:opacity-100">
+            <span className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition group-hover:bg-black/30 group-hover:opacity-100 group-focus-visible:bg-black/30 group-focus-visible:opacity-100">
               <span className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 font-semibold text-zinc-900 shadow-lg">
                 <Maximize2 className="size-4" /> Xem toàn bộ mẫu
               </span>
@@ -106,12 +107,17 @@ export function TemplateDetail({ project, categoryName }: { project: Project; ca
             </li>
           ))}
         </ul>
-        <div className="rounded-[24px] border border-border/60 bg-card p-6 lg:sticky lg:top-28">
+        <div className="rounded-card border border-border/60 bg-card p-6 lg:sticky lg:top-28">
           <div className="text-sm text-muted-foreground">Giá trọn gói · giao diện {variant.name}</div>
-          <div className="mt-1 text-3xl font-bold tracking-tight">từ <span className="wm-price">{formatVnd(project.price)}</span></div>
-          <div className="mt-1 text-sm text-muted-foreground">
-            Bàn giao trong {SITE.deliveryDays} · Hoàn tiền trong {SITE.refundDays} ngày
-          </div>
+          <PriceTag value={project.price} className="mt-1 block text-3xl font-bold tracking-tight" />
+          {!SITE.showPrices && (
+            <p className="mt-1 text-sm text-muted-foreground">Gửi yêu cầu, chúng tôi báo giá chi tiết theo nội dung và tính năng bạn cần.</p>
+          )}
+          <ul className="mt-4 space-y-2 border-t border-border pt-4 text-sm">
+            <li className="flex items-center gap-2"><Clock className="size-4 text-primary" aria-hidden /> Bàn giao trong {SITE.deliveryDays}</li>
+            <li className="flex items-center gap-2"><RotateCcw className="size-4 text-primary" aria-hidden /> Hoàn tiền trong {SITE.refundDays} ngày nếu không đúng mẫu</li>
+            <li className="flex items-center gap-2"><ShieldCheck className="size-4 text-primary" aria-hidden /> Tên miền, hosting năm đầu và trang quản trị</li>
+          </ul>
           <div className="mt-5 flex flex-col gap-3">
             {isAdmin && (
               <Link
@@ -143,6 +149,22 @@ export function TemplateDetail({ project, categoryName }: { project: Project; ca
             )}
           </div>
         </div>
+      </div>
+
+      {/* Điện thoại: khung giá nằm xa dưới ảnh, nên giữ hai nút chính luôn trong tầm tay. */}
+      <div className="fixed inset-x-0 bottom-0 z-40 flex gap-2 border-t border-border bg-card/95 p-3 backdrop-blur lg:hidden">
+        <Link
+          href={`/demo/${project.slug}?giao-dien=${variantId}`}
+          className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full border-2 border-foreground/80 text-[15px] font-semibold"
+        >
+          <Maximize2 className="size-4" aria-hidden /> Xem trọn mẫu
+        </Link>
+        <Link
+          href={`/bao-gia?mau=${project.slug}&giao-dien=${variantId}`}
+          className="inline-flex h-12 flex-[1.3] items-center justify-center rounded-full bg-primary text-[15px] font-semibold text-primary-foreground"
+        >
+          Xin báo giá
+        </Link>
       </div>
     </div>
   );

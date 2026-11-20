@@ -42,7 +42,7 @@ export function QuoteForm() {
 
   if (sent) {
     return (
-      <div className="rounded-[28px] border border-border/60 bg-card p-10 text-center">
+      <div className="rounded-card border border-border/60 bg-card p-10 text-center">
         <CheckCircle2 className="mx-auto size-12 text-primary" />
         <h2 className="mt-4 text-2xl font-bold">Đã soạn sẵn email yêu cầu</h2>
         <p className="mx-auto mt-2 max-w-md text-muted-foreground">
@@ -68,7 +68,7 @@ export function QuoteForm() {
 
   return (
     <div className="grid items-start gap-10 lg:grid-cols-[1.2fr_1fr]">
-      <form onSubmit={submit} className="grid gap-4 rounded-[28px] border border-border/60 bg-card p-6 sm:grid-cols-2 sm:p-8">
+      <form onSubmit={submit} className="grid gap-4 rounded-card border border-border/60 bg-card p-6 sm:grid-cols-2 sm:p-8">
         <label className="space-y-2">
           <span className="text-sm font-medium">Họ tên *</span>
           <input name="name" required className={field} placeholder="Nguyễn Văn A" autoComplete="name" />

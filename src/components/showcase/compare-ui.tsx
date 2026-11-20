@@ -18,7 +18,8 @@ export function CompareToggle({ slug, className = "" }: { slug: string; classNam
         e.stopPropagation();
         toggle(slug);
       }}
-      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold backdrop-blur transition ${
+      aria-label={active ? "Bỏ khỏi so sánh" : "Thêm vào so sánh"}
+      className={`inline-flex min-h-8 items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold backdrop-blur transition ${
         active ? "bg-primary text-primary-foreground" : "bg-white/85 text-zinc-900 hover:bg-white"
       } ${className}`}
     >

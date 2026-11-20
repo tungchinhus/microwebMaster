@@ -1,4 +1,4 @@
-import { ArrowLeft } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -28,10 +28,20 @@ export default async function TemplatePage({ params }: PageProps<"/mau/[slug]">)
   return (
     <>
       <SiteHeader />
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 pt-10">
-        <Link href={`/kho?loai=${project.category}`} className="inline-flex items-center gap-1.5 text-[15px] text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="size-4" /> {category?.name}
-        </Link>
+      <main className="mx-auto w-full max-w-7xl flex-1 px-4 pt-10 pb-20 lg:pb-0">
+        <nav aria-label="Đường dẫn" className="text-[15px] text-muted-foreground">
+          <ol className="flex flex-wrap items-center gap-1.5">
+            <li>
+              <Link href="/kho" className="hover:text-foreground">Kho mẫu</Link>
+            </li>
+            <li aria-hidden><ChevronRight className="size-4 opacity-60" /></li>
+            <li>
+              <Link href={`/kho?loai=${project.category}`} className="hover:text-foreground">{category?.name}</Link>
+            </li>
+            <li aria-hidden><ChevronRight className="size-4 opacity-60" /></li>
+            <li aria-current="page" className="font-medium text-foreground">{project.name}</li>
+          </ol>
+        </nav>
 
         <TemplateDetail project={project} categoryName={category?.name} />
         <TemplateParts project={project} />

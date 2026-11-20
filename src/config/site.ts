@@ -12,6 +12,11 @@ export const SITE = {
   /** Giá khởi điểm hiển thị trên thẻ mẫu, đơn vị đồng. */
   startingPrice: 3_900_000,
   deliveryDays: "3 đến 7 ngày",
+  /**
+   * Hiện giá trên trang giới thiệu (thẻ mẫu, bảng giá, trang chi tiết).
+   * Đang tắt: mỗi khách được báo giá riêng, chỗ giá hiện chữ "Báo giá trong ngày" thay cho số bị làm mờ.
+   */
+  showPrices: false,
   refundDays: 30,
 };
 

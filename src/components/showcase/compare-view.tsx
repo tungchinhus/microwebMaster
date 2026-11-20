@@ -4,7 +4,7 @@ import { Check, Maximize2, Minus, Plus, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
-import { formatVnd } from "@/config/site";
+import { PriceTag } from "./price-tag";
 import { FEATURES, featuresOf, getCategory, getProject, variantsOf, type Project } from "@/lib/showcase/catalog";
 import { COMPARE_MAX, useCompareStore } from "@/store/compare-store";
 import { DesktopPreview } from "./mini-site";
@@ -42,7 +42,7 @@ export function CompareView() {
 
   if (!projects.length) {
     return (
-      <div className="rounded-[28px] border-2 border-dashed border-border p-12 text-center text-muted-foreground">
+      <div className="rounded-card border-2 border-dashed border-border p-12 text-center text-muted-foreground">
         Chưa chọn mẫu nào. Vào{" "}
         <Link href="/kho" className="font-medium text-foreground underline underline-offset-4">
           kho mẫu
@@ -94,7 +94,7 @@ export function CompareView() {
 
         {[
           { label: "Lĩnh vực", render: (p: Project) => getCategory(p.category)?.name },
-          { label: "Giá trọn gói", render: (p: Project) => <span className="font-semibold">từ <span className="wm-price">{formatVnd(p.price)}</span></span> },
+          { label: "Giá trọn gói", render: (p: Project) => <PriceTag value={p.price} className="font-semibold" /> },
           { label: "Số giao diện", render: (p: Project) => `${variantsOf(p).length} giao diện` },
           { label: "Tự tạo bằng AI", render: (p: Project) => <Cell ok={!!p.aiReady} /> },
         ].map((r) => (

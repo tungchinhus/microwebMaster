@@ -94,7 +94,7 @@ export function DemoViewer({ project }: { project: Project }) {
             src={`${BASE}/xem/${project.slug}/?giao-dien=${variantId}`}
             title={`Toàn bộ mẫu ${project.name}`}
             className={`h-full animate-[fadeUp_.35s_ease] bg-white shadow-2xl shadow-black/50 ${
-              device === "mobile" ? "w-[390px] max-w-full rounded-[36px] border-[10px] border-zinc-800" : "w-full rounded-xl"
+              device === "mobile" ? "w-[390px] max-w-full rounded-panel border-[10px] border-zinc-800" : "w-full rounded-xl"
             }`}
           />
         )}

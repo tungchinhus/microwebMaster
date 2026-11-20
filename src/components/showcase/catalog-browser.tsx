@@ -5,7 +5,8 @@ import { layoutTypes } from "@/lib/sites/layouts";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { CATEGORIES, FEATURES, PROJECTS, featuresOf, getCategory, matchesQuery, type FeatureId } from "@/lib/showcase/catalog";
+import { CATEGORIES, FEATURES, PROJECTS, featuresOf, getCategory, matchesQuery, projectsIn, type FeatureId } from "@/lib/showcase/catalog";
+import { CategoryIcon } from "./category-icons";
 import { ProjectCard } from "./cards";
 import { CompareBar } from "./compare-ui";
 
@@ -78,22 +79,46 @@ export function CatalogBrowser() {
           }}
           placeholder="Tìm mẫu: bán trà, đặt lịch spa, tuyển dụng..."
           aria-label="Tìm mẫu"
-          className="h-14 w-full rounded-full border border-border bg-card pr-5 pl-13 text-base outline-none transition placeholder:text-muted-foreground/70 focus:border-primary focus:ring-4 focus:ring-primary/15"
+          className="h-14 w-full rounded-full border border-border bg-card pr-14 pl-13 text-base outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-4 focus:ring-primary/15 [&::-webkit-search-cancel-button]:hidden"
         />
+        {query && (
+          <button
+            type="button"
+            onClick={() => {
+              setQuery("");
+              update({ q: "" });
+            }}
+            aria-label="Xoá từ khoá"
+            className="absolute top-1/2 right-3 flex size-9 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            <X className="size-4" />
+          </button>
+        )}
       </div>
 
-      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:gap-2.5 sm:overflow-visible sm:px-0 sm:pb-0">
-        <button className={pill(!category)} onClick={() => update({ loai: "" })}>
-          Tất cả
-        </button>
-        {CATEGORIES.map((c) => (
-          <button key={c.id} className={pill(category === c.id)} onClick={() => update({ loai: c.id })}>
-            {c.name}
+      {/* Hàng lĩnh vực dính dưới thanh đầu trang: kho có hơn 40 mẫu, cuộn xuống vẫn đổi lĩnh vực được ngay. */}
+      <div className="sticky top-[5.5rem] z-30 -mx-4 bg-background/90 px-4 py-2.5 backdrop-blur supports-[backdrop-filter]:bg-background/75">
+        <div
+          role="group"
+          aria-label="Lĩnh vực"
+          className="flex gap-2 overflow-x-auto [mask-image:linear-gradient(to_right,#000_calc(100%-40px),transparent)] [scrollbar-width:none] sm:gap-2.5"
+        >
+          <button className={pill(!category)} aria-pressed={!category} onClick={() => update({ loai: "" })}>
+            Tất cả
           </button>
-        ))}
-        <span className="hidden items-center gap-2 rounded-full border border-dashed border-border px-5 py-2.5 text-[15px] text-muted-foreground sm:inline-flex">
-          Lĩnh vực khác <span className="rounded-full border border-border px-2 text-xs">Sắp có</span>
-        </span>
+          {CATEGORIES.map((c) => {
+            return (
+              <button key={c.id} className={`${pill(category === c.id)} inline-flex items-center gap-1.5`} aria-pressed={category === c.id} onClick={() => update({ loai: c.id })}>
+                <CategoryIcon id={c.id} className="size-4" />
+                {c.name}
+                <span className={`text-xs tabular-nums ${category === c.id ? "opacity-70" : "text-muted-foreground"}`}>{projectsIn(c.id).length}</span>
+              </button>
+            );
+          })}
+          <Link href="/bao-gia" className="inline-flex shrink-0 items-center gap-2 rounded-full border border-dashed border-border px-4 py-2 text-sm whitespace-nowrap text-muted-foreground hover:text-foreground sm:px-5 sm:py-2.5 sm:text-[15px]">
+            Lĩnh vực khác? Làm riêng
+          </Link>
+        </div>
       </div>
 
       <button
@@ -154,12 +179,26 @@ export function CatalogBrowser() {
           ))}
         </div>
       ) : (
-        <div className="rounded-[28px] border-2 border-dashed border-border p-12 text-center text-muted-foreground">
-          Chưa có mẫu khớp bộ lọc. Thử bỏ bớt tính năng, hoặc{" "}
-          <Link href="/bao-gia" className="font-medium text-foreground underline underline-offset-4">
-            gửi yêu cầu làm riêng
-          </Link>
-          .
+        <div className="mb-24 flex flex-col items-center gap-4 rounded-card border-2 border-dashed border-border px-6 py-14 text-center">
+          <Search className="size-8 text-muted-foreground" aria-hidden />
+          <div className="space-y-1">
+            <p className="text-lg font-semibold">Chưa có mẫu khớp {query.trim() ? `“${query.trim()}”` : "bộ lọc này"}</p>
+            <p className="text-muted-foreground">Thử bỏ bớt tính năng hoặc đổi từ khoá. Không thấy mẫu ưng ý, chúng tôi làm riêng cho bạn.</p>
+          </div>
+          <div className="flex flex-wrap justify-center gap-3">
+            <button
+              className="inline-flex h-11 items-center rounded-full border border-border bg-card px-5 font-semibold hover:bg-muted"
+              onClick={() => {
+                setQuery("");
+                update({ loai: "", tinhNang: [], q: "" });
+              }}
+            >
+              Xem tất cả mẫu
+            </button>
+            <Link href="/bao-gia" className="inline-flex h-11 items-center rounded-full bg-primary px-5 font-semibold text-primary-foreground hover:brightness-110">
+              Yêu cầu làm riêng
+            </Link>
+          </div>
         </div>
       )}
       <CompareBar />

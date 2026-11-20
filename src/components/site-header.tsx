@@ -1,13 +1,8 @@
 import { LayoutTemplate, Menu } from "lucide-react";
 import Link from "next/link";
 import { SITE } from "@/config/site";
+import { DesktopNav, MobileNav } from "./header-nav";
 
-const NAV = [
-  { href: "/kho", label: "Mẫu web" },
-  { href: "/#bang-gia", label: "Bảng giá" },
-  { href: "/tao-web", label: "Tự tạo bằng AI" },
-  { href: "/#hoi-dap", label: "Hỏi đáp" },
-];
 
 export function SiteHeader({ children }: { children?: React.ReactNode }) {
   return (
@@ -19,12 +14,8 @@ export function SiteHeader({ children }: { children?: React.ReactNode }) {
           </span>
           {SITE.name}
         </Link>
-        <nav className="hidden items-center gap-1 text-[15px] md:flex">
-          {NAV.map((n) => (
-            <Link key={n.href} href={n.href} className="rounded-full px-3.5 py-2 text-foreground/80 transition hover:bg-muted hover:text-foreground">
-              {n.label}
-            </Link>
-          ))}
+        <nav aria-label="Chính" className="hidden items-center gap-1 text-[15px] md:flex">
+          <DesktopNav />
           {children}
         </nav>
         <div className="ml-auto flex items-center gap-2">
@@ -39,12 +30,8 @@ export function SiteHeader({ children }: { children?: React.ReactNode }) {
               <Menu className="size-5" />
               <span className="sr-only">Mở menu</span>
             </summary>
-            <nav className="absolute top-14 right-0 flex w-56 flex-col rounded-2xl border border-border bg-card p-2 shadow-xl">
-              {NAV.map((n) => (
-                <Link key={n.href} href={n.href} className="rounded-xl px-4 py-3 text-[15px] hover:bg-muted">
-                  {n.label}
-                </Link>
-              ))}
+            <nav aria-label="Menu" className="absolute top-14 right-0 flex w-56 flex-col rounded-2xl border border-border bg-card p-2 shadow-xl">
+              <MobileNav />
               {children}
             </nav>
           </details>
@@ -65,7 +52,7 @@ export function SiteFooter() {
             </span>
             {SITE.name}
           </div>
-          <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">{SITE.tagline}. Giá cố định, bàn giao trong {SITE.deliveryDays}.</p>
+          <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">{SITE.tagline}. Báo giá rõ ràng trước khi làm, bàn giao trong {SITE.deliveryDays}.</p>
         </div>
         <div className="space-y-3 text-sm">
           <div className="font-semibold">Khám phá</div>

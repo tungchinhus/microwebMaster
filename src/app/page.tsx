@@ -4,7 +4,8 @@ import { CategoryCard, ProjectCard } from "@/components/showcase/cards";
 import { CompareBar } from "@/components/showcase/compare-ui";
 import { HeroShowcase } from "@/components/showcase/hero-showcase";
 import { SiteFooter, SiteHeader } from "@/components/site-header";
-import { SITE, formatVnd } from "@/config/site";
+import { PriceTag } from "@/components/showcase/price-tag";
+import { SITE } from "@/config/site";
 import { CATEGORIES, PROJECTS } from "@/lib/showcase/catalog";
 
 const STEPS = [
@@ -16,20 +17,20 @@ const STEPS = [
 const PLANS = [
   {
     name: "Cơ bản",
-    price: formatVnd(SITE.startingPrice),
+    price: SITE.startingPrice,
     note: "Một mẫu có sẵn, đổi nội dung",
     features: ["Chọn 1 mẫu trong kho", "Đổi logo, màu, nội dung", "Tên miền và hosting năm đầu", "Bàn giao trong 3 ngày"],
   },
   {
     name: "Doanh nghiệp",
-    price: formatVnd(7_900_000),
+    price: 7_900_000,
     note: "Thêm tính năng theo ngành",
     features: ["Mọi thứ trong gói Cơ bản", "Thêm tối đa 5 trang hoặc tính năng", "Trang quản trị, phân quyền", "Tối ưu SEO và tốc độ", "Hỗ trợ 6 tháng"],
     highlight: true,
   },
   {
     name: "Theo yêu cầu",
-    price: "Báo giá riêng",
+    price: null,
     note: "Thiết kế và tính năng riêng",
     features: ["Thiết kế giao diện riêng", "Kết nối hệ thống có sẵn", "3D, game, công cụ AI", "Hỗ trợ dài hạn"],
   },
@@ -45,6 +46,13 @@ const FAQ = [
 
 export default function HomePage() {
   const featured = PROJECTS.filter((p) => p.featured).slice(0, 4);
+  const openCategories = CATEGORIES.filter((c) => !c.comingSoon).length;
+  const stats = [
+    { value: `${PROJECTS.length}`, label: "mẫu dựng sẵn" },
+    { value: `${openCategories}`, label: "lĩnh vực" },
+    { value: SITE.deliveryDays.replace(" đến ", "–"), label: "bàn giao" },
+    { value: `${SITE.refundDays} ngày`, label: "hoàn tiền" },
+  ];
 
   return (
     <>
@@ -57,8 +65,8 @@ export default function HomePage() {
               Website riêng, chọn mẫu là có
             </h1>
             <p className="max-w-xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
-              Mẫu sẵn cho bán hàng, giáo dục, dịch vụ, tuyển dụng, 3D và nhiều lĩnh vực khác. Giá cố định, thấy ngay. Bàn giao trong{" "}
-              {SITE.deliveryDays}.
+              Mẫu dựng sẵn cho cửa hàng, quán ăn, lớp học, phòng khám và nhiều lĩnh vực khác. Chọn mẫu, gửi nội dung, nhận web chạy thật
+              trong {SITE.deliveryDays}.
             </p>
             <div className="flex flex-wrap gap-3">
               <Link
@@ -74,9 +82,15 @@ export default function HomePage() {
                 <Sparkles className="size-5" /> Tự tạo bằng AI
               </Link>
             </div>
-            <p className="text-[15px] text-muted-foreground">
-              Từ <span className="wm-price">{formatVnd(SITE.startingPrice)}</span> · Hoàn tiền trong {SITE.refundDays} ngày
-            </p>
+            {/* Con số tin cậy: thay cho giá (đang ẩn), cho khách thấy ngay quy mô kho mẫu và cam kết. */}
+            <dl className="grid max-w-xl grid-cols-2 gap-x-6 gap-y-4 border-t border-border pt-6 sm:grid-cols-4">
+              {stats.map((s) => (
+                <div key={s.label} className="flex flex-col-reverse gap-0.5">
+                  <dt className="text-sm text-muted-foreground">{s.label}</dt>
+                  <dd className="text-2xl font-bold tracking-tight whitespace-nowrap">{s.value}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
           <HeroShowcase />
         </section>
@@ -111,7 +125,7 @@ export default function HomePage() {
 
         {/* Quy trình */}
         <section className="mx-auto max-w-7xl px-4 pb-24">
-          <div className="rounded-[36px] bg-foreground px-6 py-14 text-background sm:px-12">
+          <div className="rounded-panel bg-foreground px-6 py-14 text-background sm:px-12">
             <h2 className="mb-12 max-w-2xl text-4xl font-bold tracking-tight sm:text-5xl">Ba bước để có website</h2>
             <div className="grid gap-10 md:grid-cols-3">
               {STEPS.map((s, i) => (
@@ -133,14 +147,18 @@ export default function HomePage() {
         {/* Bảng giá */}
         <section id="bang-gia" className="mx-auto max-w-7xl scroll-mt-28 px-4 pb-24">
           <div className="mb-10 max-w-2xl space-y-3">
-            <h2 className="text-4xl font-bold tracking-tight sm:text-5xl">Bảng giá rõ ràng</h2>
-            <p className="text-lg text-muted-foreground">Giá cố định theo gói, biết trước khi bắt đầu.</p>
+            <h2 className="text-4xl font-bold tracking-tight sm:text-5xl">{SITE.showPrices ? "Bảng giá rõ ràng" : "Chọn gói, nhận báo giá"}</h2>
+            <p className="text-lg text-muted-foreground">
+              {SITE.showPrices
+                ? "Giá cố định theo gói, biết trước khi bắt đầu."
+                : "Chọn gói gần với nhu cầu, chúng tôi gửi báo giá chi tiết trong ngày. Chốt giá rồi mới làm, không phát sinh."}
+            </p>
           </div>
           <div className="grid gap-5 lg:grid-cols-3">
             {PLANS.map((plan) => (
               <div
                 key={plan.name}
-                className={`flex flex-col gap-6 rounded-[28px] p-8 ${
+                className={`flex flex-col gap-6 rounded-card p-8 ${
                   plan.highlight ? "bg-primary text-primary-foreground shadow-2xl shadow-primary/25" : "border border-border/60 bg-card"
                 }`}
               >
@@ -149,7 +167,9 @@ export default function HomePage() {
                     <h3 className="text-xl font-semibold">{plan.name}</h3>
                     {plan.highlight && <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold">Phổ biến</span>}
                   </div>
-                  <div className="text-4xl font-bold tracking-tight">{/\d/.test(plan.price) ? <span className="wm-price">{plan.price}</span> : plan.price}</div>
+                  <div className={`font-bold tracking-tight ${SITE.showPrices ? "text-4xl" : "text-3xl"}`}>
+                    {plan.price ? <PriceTag value={plan.price} from={false} hiddenLabel="Báo giá trong ngày" /> : "Báo giá riêng"}
+                  </div>
                   <p className={plan.highlight ? "opacity-80" : "text-muted-foreground"}>{plan.note}</p>
                 </div>
                 <ul className="space-y-3 text-[15px]">
@@ -165,7 +185,7 @@ export default function HomePage() {
                     plan.highlight ? "bg-white text-primary hover:bg-white/90" : "bg-foreground text-background hover:opacity-90"
                   }`}
                 >
-                  Chọn gói này
+                  {SITE.showPrices ? "Chọn gói này" : "Nhận báo giá gói này"}
                 </Link>
               </div>
             ))}
@@ -178,7 +198,7 @@ export default function HomePage() {
 
         {/* AI */}
         <section className="mx-auto max-w-7xl px-4 pb-24">
-          <div className="grid items-center gap-8 rounded-[36px] border border-border/60 bg-card p-8 sm:p-12 lg:grid-cols-[1.4fr_1fr]">
+          <div className="grid items-center gap-8 rounded-panel border border-border/60 bg-card p-8 sm:p-12 lg:grid-cols-[1.4fr_1fr]">
             <div className="space-y-4">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
                 <Sparkles className="size-4" /> Miễn phí
@@ -203,7 +223,7 @@ export default function HomePage() {
         {/* Hỏi đáp */}
         <section id="hoi-dap" className="mx-auto max-w-3xl scroll-mt-28 px-4">
           <h2 className="mb-8 text-4xl font-bold tracking-tight sm:text-5xl">Hỏi đáp</h2>
-          <div className="divide-y divide-border rounded-[28px] border border-border/60 bg-card">
+          <div className="divide-y divide-border rounded-card border border-border/60 bg-card">
             {FAQ.map(([q, a]) => (
               <details key={q} className="group px-7 py-5">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-lg font-semibold [&::-webkit-details-marker]:hidden">
